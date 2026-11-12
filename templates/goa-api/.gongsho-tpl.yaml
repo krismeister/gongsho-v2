@@ -1,0 +1,6 @@
+name: goa-api
+version: "1.0"
+vars:
+  - id
+owned:
+  - proxy-stanza

@@ -1,0 +1,8 @@
+# Build output, runtime state, and databases (see docs/phase-1/repository-layout.md).
+bin/
+data/
+proxy/sockets/
+proxy/dev.d/
+run/
+# UI dependencies.
+node_modules/
