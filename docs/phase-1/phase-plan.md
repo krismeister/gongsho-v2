@@ -233,12 +233,13 @@ runtime layout), `e2e-standard.md` (env contract plus runners),
 
 ## Work steps
 
-1. `tools/` skeleton plus `lib.sh` (ID rules, path derivation, reload, help
-   scaffolding). Validates by clean `--help` runs on stubs plus a shell lint
-   pass.
-2. Template manifests, READMEs, and scaffold sources for both templates.
-   Validates by `template-check` (build it here): scaffold scratch app, build,
-   check, tear down.
+1. Template manifests, READMEs, and scaffold sources for both templates.
+   Validates by direct builds (`go build`, `vite build`) since no harness
+   exists yet.
+2. `tools/` skeleton plus `lib.sh` (ID rules, path derivation, reload, help
+   scaffolding) plus `template-check`: scaffold scratch app, build, check,
+   tear down. Re-validates both templates through the harness. Validates by
+   clean `--help` runs on stubs plus a shell lint pass.
 3. `create`/`build`/`deploy` path for one API end to end with migrate plus
    backup/restore proven by a forced failing migration. Resolve exact version
    pins (Goa, Go, Node, React) and the SQLite driver here.
@@ -250,12 +251,12 @@ runtime layout), `e2e-standard.md` (env contract plus runners),
 ## Agent parallelization
 
 Freeze first (already decided; these docs are the freeze): descriptor
-schemas, ID rules, e2e env interface. Then parallel packs with no shared
-files: templates pack (`templates/`, one agent per template), tools pack
-(`tools/` plus `lib.sh`), runtime pack (`proxy/` layout, supervision
-behavior, `run/` conventions), integration pack (runners wired, demo apps,
-exit gate). Merge in work-steps order; each pack validates against the
-frozen contracts, never against another pack's unfinished output.
+schemas, ID rules, e2e env interface. Templates pack (one agent per template)
+and runtime pack (`proxy/` behavior, `run/` conventions) run parallel now;
+tools pack (`tools/` plus `lib.sh`) starts once templates complete;
+integration pack (runners wired, demo apps, exit gate) last. Packs share no
+files; each validates against the frozen contracts, never against another
+pack's unfinished output.
 
 ## Risks
 
