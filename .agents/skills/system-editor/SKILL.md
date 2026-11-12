@@ -37,3 +37,11 @@ Read these before acting, in order:
   contract means updating its spec file in the same change.
 - Verify with the harness, never by hand: `template-check` for template work,
   regen-cleanliness for anything generated, `check`/`e2e` for behavior.
+- Tasking: instructions in your prompts authorize the files and actions
+  they name — don't re-ask permission for those. If two instructions
+  conflict, follow the most recent explicit one; if still unclear, ask.
+- Thin instructions, clear specs: proceed using judgment and log every
+  assumption in your report.
+- Full stop only on: conflicts with frozen specs, installs or updates,
+  destructive or irreversible actions, or ambiguity between materially
+  different outcomes. Report and wait.
