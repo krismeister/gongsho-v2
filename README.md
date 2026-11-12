@@ -6,6 +6,19 @@ templates first, then gongsho-console, then gongsho-apps.
 Status: Phase 1 is in detailed design. Planning docs live in `docs/`;
 no implementation exists yet.
 
+## Prerequisites
+
+- Go 1.27.3 or later, Node.js 22 or later, Caddy, yq.
+- Playwright browsers install per UI project
+  (`npx playwright install --with-deps`).
+- Standard shell tooling: git, curl, bash.
+
+Omarchy/Arch install for the toolchain:
+
+```sh
+sudo pacman -S go caddy yq nodejs
+```
+
 ## Docs
 
 Read in order:
