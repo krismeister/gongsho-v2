@@ -6,3 +6,9 @@ proxy/dev.d/
 run/
 # UI dependencies.
 node_modules/
+# Tooling state dirs (empty sandbox stubs; never commit contents).
+# NOTE: .agents/ is intentionally NOT ignored — project skills live there.
+.eden/
+.hg/
+.muse/
+.sl/
