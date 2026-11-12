@@ -1,0 +1,30 @@
+#!/bin/sh
+# tools/restart — stop plus start as one verb.
+set -eu
+VERB=restart
+case $0 in
+    */*) _d=$(dirname -- "$0") ;;
+    *) _d=$(dirname -- "$(command -v "$0" 2>/dev/null || printf '%s' "$0")") ;;
+esac
+[ -f "$_d/lib.sh" ] || { echo "error: cannot find lib.sh (invoked as $0)" >&2; exit 1; }
+. "$_d/lib.sh"
+
+print_help() { cat <<'EOF'
+usage: tools/restart <id>
+
+Stop plus start as one verb (a brief 502 window is accepted, no draining).
+UIs have no process to restart.
+EOF
+}
+
+case "${1:-}" in -h|--help) print_help; exit 0 ;; esac
+[ $# -eq 1 ] || usage "want exactly one deployment ID"
+_id=$1
+validate_id "$_id"
+validate_pin "$_id"
+_t=$(pin_template "$_id")
+_kind=$(template_kind "$_t")
+[ "$_kind" = "api" ] || die "nothing to restart ('$_id' is a static UI)"
+sh "$_d/stop" "$_id" || die "stop step failed"
+sh "$_d/start" "$_id" || die "start step failed"
+log "restarted '$_id'"

@@ -1,0 +1,98 @@
+#!/bin/sh
+# tools/migrate — backup, migrate up, verify version (APIs only).
+set -eu
+VERB=migrate
+case $0 in
+    */*) _d=$(dirname -- "$0") ;;
+    *) _d=$(dirname -- "$(command -v "$0" 2>/dev/null || printf '%s' "$0")") ;;
+esac
+[ -f "$_d/lib.sh" ] || { echo "error: cannot find lib.sh (invoked as $0)" >&2; exit 1; }
+. "$_d/lib.sh"
+
+print_help() { cat <<'EOF'
+usage: tools/migrate [--dev <session>] <id>
+
+Backup (stable only), migrate up with pinned golang-migrate, verify the
+version, prune backups to three. Fresh databases migrate from zero with
+no backup. On migrate failure the backup is restored and the run aborts
+loudly. Dev databases migrate up with no backup.
+
+Prerequisites: Go toolchain (runs the pinned migrate), yq.
+EOF
+}
+
+_dev=""; _id=""
+while [ $# -gt 0 ]; do
+    case $1 in
+        -h|--help) print_help; exit 0 ;;
+        --dev)
+            shift
+            [ $# -gt 0 ] || usage "missing value for --dev"
+            _dev=$1; shift ;;
+        --dev=*) _dev=${1#--dev=}; shift ;;
+        --*) usage "unknown flag '$1'" ;;
+        *) [ -z "$_id" ] || usage "unexpected argument '$1' (want exactly one ID)"
+            _id=$1; shift ;;
+    esac
+done
+[ -n "$_id" ] || usage "missing deployment ID"
+[ -z "$_dev" ] || validate_session "$_dev"
+validate_id "$_id"
+validate_pin "$_id"
+_t=$(pin_template "$_id")
+_kind=$(template_kind "$_t")
+[ "$_kind" = "api" ] || die "'$_id' is a UI deployment (no database to migrate)"
+_mig="$(app_dir "$_id")/migrations"
+[ -d "$_mig" ] || die "no migrations dir for '$_id' ($_mig)"
+_nup=0
+for _f in "$_mig/"*.up.sql; do
+    [ -e "$_f" ] || break
+    _nup=$((_nup + 1))
+done
+[ "$_nup" -gt 0 ] || die "no *.up.sql migrations in $_mig"
+unset _f
+
+if [ -n "$_dev" ]; then
+    _db=$(dev_db_path "$_dev" "$_id")
+else
+    _db="$REPO_ROOT/$(pin_db_path "$_id")"
+fi
+ensure_dir "$(dirname -- "$_db")" || die "cannot create db dir"
+
+_backup=""
+if [ -z "$_dev" ] && [ -f "$_db" ]; then
+    _backup="$_db.bak-$(ts_short)-$$"
+    cp -- "$_db" "$_backup" || die "cannot back up $_db"
+    log "backed up to $_backup"
+fi
+if [ ! -f "$_db" ]; then
+    : >"$_db" || die "cannot create $_db"
+    log "created fresh database"
+fi
+
+need_cmd go "Go toolchain (runs pinned golang-migrate)"
+_mrc=0
+_mout=$(go run -tags 'sqlite' "github.com/golang-migrate/migrate/v4/cmd/migrate@$MIGRATE_VERSION" -source "file://$_mig" -database "sqlite://$_db" up 2>&1) || _mrc=$?
+if [ "$_mrc" -ne 0 ]; then
+    if [ -n "$_mout" ]; then printf '%s\n' "$_mout"; fi
+    if [ -n "$_backup" ]; then
+        cp -- "$_backup" "$_db" || die "migrate failed AND backup restore failed (backup at $_backup)"
+        log "restored backup $_backup"
+    fi
+    die "migrate up failed (see above)"
+fi
+if [ -n "$_mout" ]; then printf '%s\n' "$_mout"; fi
+
+_vrc=0
+_ver=$(go run -tags 'sqlite' "github.com/golang-migrate/migrate/v4/cmd/migrate@$MIGRATE_VERSION" -source "file://$_mig" -database "sqlite://$_db" version 2>&1) || _vrc=$?
+if [ "$_vrc" -ne 0 ]; then
+    if [ -n "$_ver" ]; then printf '%s\n' "$_ver"; fi
+    die "migrate up succeeded but version readback failed (inspect $_db manually)"
+fi
+log "migrated to version $_ver"
+
+if [ -z "$_dev" ]; then
+    ls -1t -- "$_db".bak-* 2>/dev/null | tail -n +4 | while IFS= read -r _old; do
+        rm -f -- "$_old" && log "pruned backup $_old"
+    done
+fi

@@ -1,0 +1,40 @@
+#!/bin/sh
+# tools/refresh-spec — copy an API's current spec into a UI snapshot.
+set -eu
+VERB=refresh-spec
+case $0 in
+    */*) _d=$(dirname -- "$0") ;;
+    *) _d=$(dirname -- "$(command -v "$0" 2>/dev/null || printf '%s' "$0")") ;;
+esac
+[ -f "$_d/lib.sh" ] || { echo "error: cannot find lib.sh (invoked as $0)" >&2; exit 1; }
+. "$_d/lib.sh"
+
+print_help() { cat <<'EOF'
+usage: tools/refresh-spec <ui-id> <api-id>
+
+Copy the API's current generated spec over the UI's snapshot for it.
+Explicit only, never automatic. Re-run build on the UI afterwards to
+regenerate clients from the new snapshot.
+
+Prerequisites: yq.
+EOF
+}
+
+case "${1:-}" in -h|--help) print_help; exit 0 ;; esac
+[ $# -eq 2 ] || usage "want exactly one UI ID and one API ID"
+_ui=$1; _api=$2
+validate_id "$_ui"
+validate_id "$_api"
+validate_pin "$_ui"
+validate_pin "$_api"
+_ut=$(pin_template "$_ui")
+[ "$_ut" = "react-ui" ] || die "'$_ui' is not a UI deployment"
+_at=$(pin_template "$_api")
+[ "$_at" = "goa-api" ] || die "'$_api' is not an API deployment"
+_src="$(app_dir "$_api")/gen/openapi.json"
+[ -f "$_src" ] || die "API '$_api' has no generated spec (run: build $_api)"
+_dest="$(app_dir "$_ui")/spec/$_api.openapi.json"
+_tmp=$(tmp_in_dir "$(dirname -- "$_dest")")
+cp -- "$_src" "$_tmp" || die "snapshot copy failed"
+atomic_mv "$_tmp" "$_dest"
+log "refreshed $_dest (re-run build $_ui to regen clients)"

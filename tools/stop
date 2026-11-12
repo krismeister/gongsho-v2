@@ -1,0 +1,29 @@
+#!/bin/sh
+# tools/stop — stop a deployment's API process (SIGTERM, grace, SIGKILL).
+set -eu
+VERB=stop
+case $0 in
+    */*) _d=$(dirname -- "$0") ;;
+    *) _d=$(dirname -- "$(command -v "$0" 2>/dev/null || printf '%s' "$0")") ;;
+esac
+[ -f "$_d/lib.sh" ] || { echo "error: cannot find lib.sh (invoked as $0)" >&2; exit 1; }
+. "$_d/lib.sh"
+
+print_help() { cat <<'EOF'
+usage: tools/stop <id>
+
+Stop the deployment's API process: SIGTERM, a grace period, then SIGKILL,
+removing the pidfile. Already-stopped (including stale pidfiles) is a
+quiet success. UIs have no process to stop.
+EOF
+}
+
+case "${1:-}" in -h|--help) print_help; exit 0 ;; esac
+[ $# -eq 1 ] || usage "want exactly one deployment ID"
+_id=$1
+validate_id "$_id"
+validate_pin "$_id"
+_t=$(pin_template "$_id")
+_kind=$(template_kind "$_t")
+[ "$_kind" = "api" ] || die "UI deployments have no process to stop ('$_id' is static)"
+stop_pidfile "$(pidfile_path "$_id")" "$STOP_GRACE"

@@ -31,6 +31,9 @@ summary, and exits nonzero when any suite fails.
   (stable/dev/empty/dangling/malformed), app env + injected vars, dev
   derivation (byte-exact + tamper cases), `need_yq` guard, failure-path
   temp hygiene (failing calls leave no temp files and write no dest).
+- `lib-env.sh` — machine config: built-in defaults without `.env`,
+  full and partial fake-root `.env` overrides, missing-file silence,
+  Go cache fallback (preset/missing/unwritable/writable), GOFLAGS once.
 - `lib-probe.sh` — independent battery: pure functions, validation
   accept/reject matrix, path builders, stable renders, empty-gen-config
   placeholder identity, pid helpers, JSON/sha, session minting.
@@ -41,6 +44,13 @@ summary, and exits nonzero when any suite fails.
   read. Stays runnable even when yq is broken.
 - `lib-probe4.sh` — independent battery: dev derivation positives and
   tamper cases, `need_yq` flavor guard (mikefarah/kislyuk/missing).
+- `verbs-cli.sh` — CLI contract for all 15 verbs: `--help`, usage errors,
+  unknown deployments, hermetic state failures. No toolchains run.
+- `verbs-ops.sh` — hermetic operational positives: create/retire/refresh
+  with a stub caddy, dev-up/dev-down, UI check/status, API
+  start/status/check/restart/stop via a python fake binary, migrate
+  backup/prune/restore via a go-stub emulator (real migrate proven in
+  scratch). Python-gated blocks SKIP without python3.
 
 ## Fixtures
 

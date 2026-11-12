@@ -1,0 +1,73 @@
+#!/bin/sh
+# tools/build — compile app source to mirrored bin/ output.
+set -eu
+VERB=build
+case $0 in
+    */*) _d=$(dirname -- "$0") ;;
+    *) _d=$(dirname -- "$(command -v "$0" 2>/dev/null || printf '%s' "$0")") ;;
+esac
+[ -f "$_d/lib.sh" ] || { echo "error: cannot find lib.sh (invoked as $0)" >&2; exit 1; }
+. "$_d/lib.sh"
+
+print_help() { cat <<'EOF'
+usage: tools/build <id>
+
+Compile app source to mirrored bin/ output with atomic promotion.
+APIs regenerate gen/ plus the normalized OpenAPI first; UIs fail on
+snapshot drift before regenerating clients and bundling. Never touches
+proxy, DBs, or processes.
+
+Prerequisites: Go toolchain (APIs), Node.js with node_modules installed (UIs), yq.
+EOF
+}
+
+case "${1:-}" in -h|--help) print_help; exit 0 ;; esac
+[ $# -eq 1 ] || usage "want exactly one deployment ID"
+_id=$1
+validate_id "$_id"
+validate_pin "$_id"
+_t=$(pin_template "$_id")
+_kind=$(template_kind "$_t")
+_path=$(id_to_path "$_id")
+_app=$(app_dir "$_id")
+_bin=$(bin_dir "$_id")
+
+if [ "$_kind" = "api" ]; then
+    need_cmd go "Go toolchain (documented prerequisite)"
+    _modline=$(cd "$_app" && go list -m 2>&1) || die "go list failed: $_modline"
+    ( cd "$_app" && go run goa.design/goa/v3/cmd/goa gen "$_modline/design" ) || die "goa gen failed (see above)"
+    [ -f "$_app/gen/http/openapi3.json" ] || die "goa gen emitted no gen/http/openapi3.json"
+    _gtmp=$(tmp_in_dir "$_app/gen")
+    cp -- "$_app/gen/http/openapi3.json" "$_gtmp" || die "spec normalize copy failed"
+    atomic_mv "$_gtmp" "$_app/gen/openapi.json"
+    rm -rf -- "${_bin}.new"
+    mkdir -p -- "${_bin}.new" || die "cannot create build scratch"
+    ( cd "$_app" && go build -o "${_bin}.new/api" . ) || die "go build failed (see above)"
+    rm -rf -- "$_bin" || die "cannot replace old output"
+    mv -- "${_bin}.new" "$_bin" || die "bin promotion failed"
+    log "built $_bin/api"
+else
+    for _spec in "$_app/spec/"*.openapi.json; do
+        [ -e "$_spec" ] || break
+        _api=$(basename -- "$_spec" .openapi.json)
+        _id_shape_ok "$_api" || die "snapshot '$_spec' names malformed API ID '$_api'"
+        deployment_exists "$_api" || die "dangling snapshot '$_spec' (no deployment '$_api'; remove the snapshot or restore the API)"
+        _pt=$(pin_template "$_api")
+        [ "$_pt" = "goa-api" ] || die "snapshot '$_spec' refers to non-API deployment '$_api'"
+        _cur="$(app_dir "$_api")/gen/openapi.json"
+        [ -f "$_cur" ] || die "API '$_api' has no generated spec (run: build $_api)"
+        if ! cmp -s -- "$_spec" "$_cur"; then
+            die "snapshot drift for '$_api': snapshot $(sha256_file "$_spec") != current $(sha256_file "$_cur"); run: tools/refresh-spec $_id $_api"
+        fi
+        unset _api _pt _cur
+    done
+    [ -x "$_app/node_modules/.bin/vite" ] || die "node_modules missing for '$_id' (run: cd apps/$_path && npm install)"
+    need_cmd npm "Node.js toolchain (documented prerequisite)"
+    ( cd "$_app" && npm run build -- --base="/$_path/" ) || die "npm build failed (see above)"
+    [ -f "$_app/dist/index.html" ] || die "build produced no dist/index.html"
+    rm -rf -- "${_bin}.new"
+    mv -- "$_app/dist" "${_bin}.new" || die "cannot stage bundle"
+    rm -rf -- "$_bin" || die "cannot replace old bundle"
+    mv -- "${_bin}.new" "$_bin" || die "bundle promotion failed"
+    log "built $_bin (base /$_path/)"
+fi

@@ -1,0 +1,59 @@
+#!/bin/sh
+# tools/start — launch a deployment's API process under pidfile supervision.
+set -eu
+VERB=start
+case $0 in
+    */*) _d=$(dirname -- "$0") ;;
+    *) _d=$(dirname -- "$(command -v "$0" 2>/dev/null || printf '%s' "$0")") ;;
+esac
+[ -f "$_d/lib.sh" ] || { echo "error: cannot find lib.sh (invoked as $0)" >&2; exit 1; }
+. "$_d/lib.sh"
+
+print_help() { cat <<'EOF'
+usage: tools/start <id>
+
+Launch the deployment's API binary detached on its unix socket: refuse
+when already running, ensure and source .env, export the pin-derived
+injected variables, record the pid, and wait on direct-socket health
+(rolling the start back on timeout). UIs have no process to start.
+
+Prerequisites: built binary (build), migrated database (migrate), yq, curl.
+EOF
+}
+
+case "${1:-}" in -h|--help) print_help; exit 0 ;; esac
+[ $# -eq 1 ] || usage "want exactly one deployment ID"
+_id=$1
+validate_id "$_id"
+validate_pin "$_id"
+_t=$(pin_template "$_id")
+_kind=$(template_kind "$_t")
+[ "$_kind" = "api" ] || die "UI deployments have no process to start ('$_id' is static)"
+_bin="$(bin_dir "$_id")/api"
+[ -x "$_bin" ] || die "no binary for '$_id' (run: build $_id)"
+_db="$REPO_ROOT/$(pin_db_path "$_id")"
+[ -f "$_db" ] || die "no database for '$_id' (run: migrate $_id)"
+_sock=$(socket_path "$_id")
+_pidf=$(pidfile_path "$_id")
+_epid=$(read_pidfile "$_pidf")
+if [ -n "$_epid" ] && pid_is_live "$_epid"; then
+    die "'$_id' is already running (pid $_epid)"
+fi
+ensure_dir "$(dirname -- "$_sock")"
+rm -f -- "$_sock"
+source_app_env "$(app_dir "$_id")"
+export_injected "$_id" "$_sock" "$_db"
+_log=$(log_path "$_id")
+cd "$REPO_ROOT" || die "cannot cd to repo root"
+nohup "$_bin" >>"$_log" 2>&1 < /dev/null &
+_pid=$!
+_ptmp=$(tmp_in_dir "$(dirname -- "$_pidf")")
+printf '%s\n' "$_pid" >"$_ptmp"
+atomic_mv "$_ptmp" "$_pidf"
+log "started '$_id' (pid $_pid)"
+if wait_direct_health "$_sock" "$(health_spec "$_t")" "$START_HEALTH_TIMEOUT"; then
+    log "healthy"
+else
+    stop_pidfile "$_pidf" "$STOP_GRACE" || true
+    die "'$_id' failed to become healthy within ${START_HEALTH_TIMEOUT}s (rolled back; see $_log)"
+fi

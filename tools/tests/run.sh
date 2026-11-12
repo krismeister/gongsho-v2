@@ -8,7 +8,7 @@ TEST_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 RUN_TMP=$(mktemp -d)
 trap 'rm -rf "$RUN_TMP"' EXIT
 
-SUITES="lib-smoke.sh lib-probe.sh lib-probe2.sh lib-probe3.sh lib-probe4.sh"
+SUITES="lib-smoke.sh lib-env.sh lib-probe.sh lib-probe2.sh lib-probe3.sh lib-probe4.sh verbs-cli.sh verbs-ops.sh"
 n_suites=0
 total_pass=0
 total_fail=0

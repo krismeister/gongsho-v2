@@ -1,0 +1,107 @@
+#!/bin/sh
+# tools/check — direct-socket API checks plus UI bundle checks (no Caddy).
+set -eu
+VERB=check
+case $0 in
+    */*) _d=$(dirname -- "$0") ;;
+    *) _d=$(dirname -- "$(command -v "$0" 2>/dev/null || printf '%s' "$0")") ;;
+esac
+[ -f "$_d/lib.sh" ] || { echo "error: cannot find lib.sh (invoked as $0)" >&2; exit 1; }
+. "$_d/lib.sh"
+
+print_help() { cat <<'EOF'
+usage: tools/check <id>
+
+Verify a deployment without a browser and without Caddy. APIs: binary
+present, process running, direct-socket health plus identity plus served
+spec. UIs: bundle present with hashed assets, runtime config fresh,
+snapshots fresh. Never builds, migrates, or starts anything.
+
+Prerequisites: yq, curl.
+EOF
+}
+
+case "${1:-}" in -h|--help) print_help; exit 0 ;; esac
+[ $# -eq 1 ] || usage "want exactly one deployment ID"
+_id=$1
+validate_id "$_id"
+validate_pin "$_id"
+_t=$(pin_template "$_id")
+_kind=$(template_kind "$_t")
+_path=$(id_to_path "$_id")
+_app=$(app_dir "$_id")
+
+if [ "$_kind" = "api" ]; then
+    [ -x "$(bin_dir "$_id")/api" ] || die "no binary for '$_id' (run: build $_id)"
+    _epid=$(read_pidfile "$(pidfile_path "$_id")")
+    if [ -z "$_epid" ] || ! pid_is_live "$_epid"; then
+        die "not running (run: start $_id)"
+    fi
+    log "process: alive (pid $_epid)"
+    _hspec=$(health_spec "$_t")
+    _hpath=$(yq eval -r '.path' "$_hspec" 2>/dev/null) || die "cannot read health spec"
+    _hstatus=$(yq eval -r '.status' "$_hspec" 2>/dev/null) || die "cannot read health spec"
+    _exp=$(mktemp) || die "cannot create temp file"
+    yq eval -o=json '.body' "$_hspec" >"$_exp" 2>/dev/null || die "cannot read health spec"
+    _hbody=$(mktemp) || die "cannot create temp file"
+    _hcode=$(direct_get "$(socket_path "$_id")" "$_hpath" "$_hbody")
+    if [ "$_hcode" = "$_hstatus" ] && json_equal "$_exp" "$_hbody"; then
+        log "direct: healthy ($_hpath $_hcode)"
+    else
+        rm -f -- "$_exp" "$_hbody"
+        die "direct health failed (code $_hcode)"
+    fi
+    _ibody=$(mktemp) || die "cannot create temp file"
+    _icode=$(direct_get "$(socket_path "$_id")" "/info" "$_ibody")
+    [ "$_icode" = "200" ] || { rm -f -- "$_exp" "$_hbody" "$_ibody"; die "GET /info failed (code $_icode)"; }
+    _iid=$(yq eval -r '.id' "$_ibody" 2>/dev/null) || { rm -f -- "$_exp" "$_hbody" "$_ibody"; die "cannot parse /info"; }
+    _itpl=$(yq eval -r '.template' "$_ibody" 2>/dev/null) || { rm -f -- "$_exp" "$_hbody" "$_ibody"; die "cannot parse /info"; }
+    _iver=$(yq eval -r '.templateVersion' "$_ibody" 2>/dev/null) || { rm -f -- "$_exp" "$_hbody" "$_ibody"; die "cannot parse /info"; }
+    if [ "$_iid" = "$_id" ] && [ "$_itpl" = "$_t" ] && [ "$_iver" = "$(pin_version "$_id")" ]; then
+        log "info: matches pin"
+    else
+        rm -f -- "$_exp" "$_hbody" "$_ibody"
+        die "GET /info mismatch (got $_iid/$_itpl/$_iver)"
+    fi
+    _obody=$(mktemp) || die "cannot create temp file"
+    _ocode=$(direct_get "$(socket_path "$_id")" "/openapi.json" "$_obody")
+    [ "$_ocode" = "200" ] || { rm -f -- "$_exp" "$_hbody" "$_ibody" "$_obody"; die "GET /openapi.json failed (code $_ocode)"; }
+    if cmp -s -- "$_obody" "$_app/gen/openapi.json"; then
+        log "openapi: served spec matches gen/openapi.json"
+    else
+        rm -f -- "$_exp" "$_hbody" "$_ibody" "$_obody"
+        die "served spec differs from gen/openapi.json (run: build $_id)"
+    fi
+    rm -f -- "$_exp" "$_hbody" "$_ibody" "$_obody"
+else
+    _bin=$(bin_dir "$_id")
+    [ -f "$_bin/index.html" ] || die "no bundle for '$_id' (run: build $_id)"
+    _nassets=$(ls -A "$_bin/assets" 2>/dev/null | wc -l)
+    [ "$_nassets" -gt 0 ] || die "no hashed assets in bundle (run: build $_id)"
+    log "bundle: present ($_nassets assets)"
+    for _spec in "$_app/spec/"*.openapi.json; do
+        [ -e "$_spec" ] || break
+        _api=$(basename -- "$_spec" .openapi.json)
+        _id_shape_ok "$_api" || die "snapshot '$_spec' names malformed API ID '$_api'"
+        deployment_exists "$_api" || die "dangling snapshot '$_spec' (no deployment '$_api'; remove the snapshot or restore the API)"
+        _pt=$(pin_template "$_api")
+        [ "$_pt" = "goa-api" ] || die "snapshot '$_spec' refers to non-API deployment '$_api'"
+        _cur="$(app_dir "$_api")/gen/openapi.json"
+        [ -f "$_cur" ] || die "API '$_api' has no generated spec (run: build $_api)"
+        if ! cmp -s -- "$_spec" "$_cur"; then
+            die "snapshot drift for '$_api': snapshot $(sha256_file "$_spec") != current $(sha256_file "$_cur"); run: tools/refresh-spec $_id $_api"
+        fi
+        unset _api _pt _cur
+    done
+    log "snapshots: fresh"
+    _exp_gc=$(mktemp) || die "cannot create temp file"
+    write_gen_config "$_exp_gc" "$_app" ""
+    if cmp -s -- "$_exp_gc" "$_bin/gen-config.json"; then
+        log "gen-config: fresh"
+    else
+        rm -f -- "$_exp_gc"
+        die "bundle gen-config stale (run: deploy $_id)"
+    fi
+    rm -f -- "$_exp_gc"
+fi
+log "check passed for '$_id'"

@@ -1,0 +1,60 @@
+#!/bin/sh
+# tools/retire — stop, unroute, and archive a deployment (never delete).
+set -eu
+VERB=retire
+case $0 in
+    */*) _d=$(dirname -- "$0") ;;
+    *) _d=$(dirname -- "$(command -v "$0" 2>/dev/null || printf '%s' "$0")") ;;
+esac
+[ -f "$_d/lib.sh" ] || { echo "error: cannot find lib.sh (invoked as $0)" >&2; exit 1; }
+. "$_d/lib.sh"
+
+print_help() { cat <<'EOF'
+usage: tools/retire <id>
+
+Stop the API process (UIs have none), remove the proxy file and reload,
+archive the app dir plus its data dir alongside with a timestamp suffix,
+and remove the disposable build output. Never auto-deletes app or data.
+
+Prerequisites: Caddy running, yq.
+EOF
+}
+
+case "${1:-}" in -h|--help) print_help; exit 0 ;; esac
+[ $# -eq 1 ] || usage "want exactly one deployment ID"
+_id=$1
+validate_id "$_id"
+validate_pin "$_id"
+_t=$(pin_template "$_id")
+_kind=$(template_kind "$_t")
+_path=$(id_to_path "$_id")
+
+if [ "$_kind" = "api" ]; then
+    sh "$_d/stop" "$_id" || die "stop step failed"
+else
+    log "no process to stop (static UI)"
+fi
+
+_pf=$(proxy_file "$_id")
+if [ -f "$_pf" ]; then
+    rm -f -- "$_pf"
+    log "removed proxy file"
+else
+    log "proxy file already absent"
+fi
+caddy_reload
+
+_ts=$(ts_short)
+_apparc="$REPO_ROOT/apps/$_path.retired-$_ts"
+mv -- "$REPO_ROOT/apps/$_path" "$_apparc" || die "cannot archive app dir"
+log "archived app to $_apparc"
+if [ -d "$REPO_ROOT/data/$_path" ]; then
+    _dataarc="$REPO_ROOT/data/$_path.retired-$_ts"
+    mv -- "$REPO_ROOT/data/$_path" "$_dataarc" || die "cannot archive data dir"
+    log "archived data to $_dataarc"
+else
+    log "no data dir to archive"
+fi
+rm -rf -- "$(bin_dir "$_id")" || die "cannot remove build output"
+log "removed build output"
+log "retired '$_id'"

@@ -1,0 +1,82 @@
+#!/bin/sh
+# tools/dev-up — bring up per-session dev copies (routes, sockets, scratch DBs).
+set -eu
+VERB=dev-up
+case $0 in
+    */*) _d=$(dirname -- "$0") ;;
+    *) _d=$(dirname -- "$(command -v "$0" 2>/dev/null || printf '%s' "$0")") ;;
+esac
+[ -f "$_d/lib.sh" ] || { echo "error: cannot find lib.sh (invoked as $0)" >&2; exit 1; }
+. "$_d/lib.sh"
+
+print_help() { cat <<'EOF'
+usage: tools/dev-up <session> <id>...
+
+Bring up dev copies for a session: render /dev/ routes from the stable
+proxy files, migrate scratch DBs from zero, and start API copies on dev
+sockets. Routes only: UI dev bundles must already exist (e2e builds its
+bundle first).
+
+Prerequisites: built binaries (build), Caddy running, yq, curl.
+EOF
+}
+
+case "${1:-}" in -h|--help) print_help; exit 0 ;; esac
+[ $# -ge 2 ] || usage "want a session plus at least one deployment ID"
+_session=$1; shift
+validate_session "$_session"
+_ids=""
+for _id in "$@"; do
+    validate_id "$_id"
+    validate_pin "$_id"
+    case " $_ids " in *" $_id "*) ;; *) _ids="$_ids $_id";; esac
+done
+
+for _id in $_ids; do
+    _t=$(pin_template "$_id")
+    _kind=$(template_kind "$_t")
+    if [ "$_kind" = "api" ]; then
+        [ -x "$(bin_dir "$_id")/api" ] || die "no binary for '$_id' (run: build $_id)"
+    else
+        [ -f "$(dev_bundle_dir "$_session" "$_id")/index.html" ] || die "no dev bundle for '$_id' (run: e2e $_id to build one)"
+    fi
+    render_dev_stanza "$_session" "$_id" "$(dev_proxy_file "$_session" "$_id")"
+    log "rendered dev route for '$_id'"
+    unset _t _kind
+done
+caddy_reload
+
+for _id in $_ids; do
+    _t=$(pin_template "$_id")
+    _kind=$(template_kind "$_t")
+    [ "$_kind" = "api" ] || { unset _t _kind; continue; }
+    sh "$_d/migrate" --dev "$_session" "$_id" || die "dev migrate failed for '$_id' (run: dev-down $_session to clean up)"
+    _sock=$(dev_socket_path "$_session" "$_id")
+    _pidf=$(dev_pidfile_path "$_session" "$_id")
+    _epid=$(read_pidfile "$_pidf")
+    if [ -n "$_epid" ] && pid_is_live "$_epid"; then
+        die "dev copy of '$_id' is already running for session '$_session' (pid $_epid)"
+    fi
+    rm -f -- "$_sock"
+    source_app_env "$(app_dir "$_id")"
+    export_injected "$_id" "$_sock" "$(dev_db_path "$_session" "$_id")"
+    _log=$(dev_log_path "$_session" "$_id")
+    cd "$REPO_ROOT" || die "cannot cd to repo root"
+    nohup "$(bin_dir "$_id")/api" >>"$_log" 2>&1 < /dev/null &
+    _pid=$!
+    _ptmp=$(tmp_in_dir "$(dirname -- "$_pidf")")
+    printf '%s\n' "$_pid" >"$_ptmp"
+    atomic_mv "$_ptmp" "$_pidf"
+    log "started dev copy of '$_id' (pid $_pid)"
+    if wait_direct_health "$_sock" "$(health_spec "$_t")" "$START_HEALTH_TIMEOUT"; then
+        log "dev copy of '$_id' healthy"
+    else
+        stop_pidfile "$_pidf" "$STOP_GRACE" || true
+        die "dev copy of '$_id' failed to become healthy (rolled back; see $_log)"
+    fi
+    unset _t _kind
+done
+
+for _id in $_ids; do
+    log "up: $CADDY_ORIGIN/dev/$_session/$(id_to_path "$_id")/"
+done

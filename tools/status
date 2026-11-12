@@ -1,0 +1,94 @@
+#!/bin/sh
+# tools/status — process state plus endpoint health in one report.
+set -eu
+VERB=status
+case $0 in
+    */*) _d=$(dirname -- "$0") ;;
+    *) _d=$(dirname -- "$(command -v "$0" 2>/dev/null || printf '%s' "$0")") ;;
+esac
+[ -f "$_d/lib.sh" ] || { echo "error: cannot find lib.sh (invoked as $0)" >&2; exit 1; }
+. "$_d/lib.sh"
+
+print_help() { cat <<'EOF'
+usage: tools/status <id>
+
+Report process state plus endpoint health. APIs: pid state, direct-socket
+health, and proxied route health. UIs: bundle presence, runtime-config
+validity, proxy presence, and route health. Exits 0 only when every
+section passes.
+
+Prerequisites: yq, curl.
+EOF
+}
+
+case "${1:-}" in -h|--help) print_help; exit 0 ;; esac
+[ $# -eq 1 ] || usage "want exactly one deployment ID"
+_id=$1
+validate_id "$_id"
+validate_pin "$_id"
+_t=$(pin_template "$_id")
+_kind=$(template_kind "$_t")
+_path=$(id_to_path "$_id")
+_fail=0
+
+if [ "$_kind" = "api" ]; then
+    _epid=$(read_pidfile "$(pidfile_path "$_id")")
+    if [ -n "$_epid" ] && pid_is_live "$_epid"; then
+        log "process: alive (pid $_epid)"
+    else
+        log "process: down"; _fail=1
+    fi
+    _hspec=$(health_spec "$_t")
+    _hpath=$(yq eval -r '.path' "$_hspec" 2>/dev/null) || die "cannot read health spec"
+    _hstatus=$(yq eval -r '.status' "$_hspec" 2>/dev/null) || die "cannot read health spec"
+    _exp=$(mktemp) || die "cannot create temp file"
+    yq eval -o=json '.body' "$_hspec" >"$_exp" 2>/dev/null || die "cannot read health spec"
+    _hbody=$(mktemp) || die "cannot create temp file"
+    _hcode=$(direct_get "$(socket_path "$_id")" "$_hpath" "$_hbody")
+    if [ "$_hcode" = "$_hstatus" ] && json_equal "$_exp" "$_hbody"; then
+        log "direct: healthy ($_hpath $_hcode)"
+    else
+        log "direct: unhealthy ($_hpath $_hcode)"; _fail=1
+    fi
+    _rbody=$(mktemp) || die "cannot create temp file"
+    _rcode=$(http_get "$CADDY_ORIGIN/$_path$_hpath" "$_rbody")
+    if [ "$_rcode" = "$_hstatus" ] && json_equal "$_exp" "$_rbody"; then
+        log "route: healthy"
+    else
+        log "route: unhealthy (code $_rcode)"; _fail=1
+    fi
+    rm -f -- "$_exp" "$_hbody" "$_rbody"
+else
+    _bin=$(bin_dir "$_id")
+    if [ -f "$_bin/index.html" ]; then
+        log "bundle: present"
+    else
+        log "bundle: missing ($_bin/index.html)"; _fail=1
+    fi
+    _gc="$_bin/gen-config.json"
+    if [ -f "$_gc" ] && yq eval -e '.apis' "$_gc" >/dev/null 2>&1; then
+        log "gen-config: valid"
+    else
+        log "gen-config: missing or invalid"; _fail=1
+    fi
+    if [ -f "$(proxy_file "$_id")" ]; then
+        log "proxy: present"
+    else
+        log "proxy: missing"; _fail=1
+    fi
+    _rbody=$(mktemp) || die "cannot create temp file"
+    _rcode=$(http_get "$CADDY_ORIGIN/$_path/gen-config.json" "$_rbody")
+    if [ "$_rcode" = "200" ] && yq eval -e '.apis' "$_rbody" >/dev/null 2>&1; then
+        log "route: healthy"
+    else
+        log "route: unhealthy (code $_rcode)"; _fail=1
+    fi
+    rm -f -- "$_rbody"
+fi
+
+if [ "$_fail" -eq 0 ]; then
+    log "status: healthy"
+else
+    log "status: unhealthy"
+    exit 1
+fi

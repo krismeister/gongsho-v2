@@ -1,0 +1,75 @@
+#!/bin/sh
+# tools/deploy — build, migrate/restart or bundle swap, verify through Caddy.
+set -eu
+VERB=deploy
+case $0 in
+    */*) _d=$(dirname -- "$0") ;;
+    *) _d=$(dirname -- "$(command -v "$0" 2>/dev/null || printf '%s' "$0")") ;;
+esac
+[ -f "$_d/lib.sh" ] || { echo "error: cannot find lib.sh (invoked as $0)" >&2; exit 1; }
+. "$_d/lib.sh"
+
+print_help() { cat <<'EOF'
+usage: tools/deploy <id>
+
+Build, assert the proxy file exists (stanzas render once at create and
+are never re-rendered here), reload, then per type — APIs: backup plus
+migrate plus restart plus health through Caddy; UIs: runtime config plus
+bundle swap plus content verification through Caddy. Migrate failures
+restore the backup; later failures abort loudly without restoring.
+
+Prerequisites: Go/Node.js toolchains per template, Caddy running, yq, curl.
+EOF
+}
+
+case "${1:-}" in -h|--help) print_help; exit 0 ;; esac
+[ $# -eq 1 ] || usage "want exactly one deployment ID"
+_id=$1
+validate_id "$_id"
+validate_pin "$_id"
+_t=$(pin_template "$_id")
+_kind=$(template_kind "$_t")
+_path=$(id_to_path "$_id")
+_app=$(app_dir "$_id")
+
+if [ "$_kind" = "api" ]; then
+    sh "$_d/build" "$_id" || die "build step failed"
+    _pf=$(proxy_file "$_id")
+    [ -f "$_pf" ] || die "proxy file missing for '$_id' (it renders once at create; restore it from git)"
+    caddy_reload
+    sh "$_d/migrate" "$_id" || die "migrate step failed"
+    sh "$_d/restart" "$_id" || die "restart step failed (database already migrated; backups retained under data/$_path/)"
+    _hspec=$(health_spec "$_t")
+    _hpath=$(yq eval -r '.path' "$_hspec" 2>/dev/null) || die "cannot read health spec"
+    _hstatus=$(yq eval -r '.status' "$_hspec" 2>/dev/null) || die "cannot read health spec"
+    _exp=$(mktemp) || die "cannot create temp file"
+    yq eval -o=json '.body' "$_hspec" >"$_exp" 2>/dev/null || die "cannot read health spec"
+    _rbody=$(mktemp) || die "cannot create temp file"
+    _rcode=$(http_get "$CADDY_ORIGIN/$_path$_hpath" "$_rbody")
+    if [ "$_rcode" = "$_hstatus" ] && json_equal "$_exp" "$_rbody"; then
+        rm -f -- "$_exp" "$_rbody"
+        log "verified through Caddy ($CADDY_ORIGIN/$_path/)"
+    else
+        _diag=$(cat "$_rbody" 2>/dev/null || true)
+        rm -f -- "$_exp" "$_rbody"
+        die "health through Caddy failed (code $_rcode, body: ${_diag:-<empty>})"
+    fi
+else
+    write_gen_config "$_app/public/gen-config.json" "$_app" ""
+    log "wrote runtime config"
+    sh "$_d/build" "$_id" || die "build step failed"
+    _pf=$(proxy_file "$_id")
+    [ -f "$_pf" ] || die "proxy file missing for '$_id' (it renders once at create; restore it from git)"
+    caddy_reload
+    _rbody=$(mktemp) || die "cannot create temp file"
+    _rcode=$(http_get "$CADDY_ORIGIN/$_path/gen-config.json" "$_rbody")
+    if [ "$_rcode" != "200" ]; then rm -f -- "$_rbody"; die "gen-config through Caddy failed (code $_rcode)"; fi
+    yq eval -e '.apis' "$_rbody" >/dev/null 2>&1 || { rm -f -- "$_rbody"; die "gen-config through Caddy invalid"; }
+    cmp -s -- "$_rbody" "$_app/public/gen-config.json" || { rm -f -- "$_rbody"; die "served gen-config differs from public/gen-config.json"; }
+    _icode=$(http_get "$CADDY_ORIGIN/$_path/" "$_rbody")
+    if [ "$_icode" != "200" ]; then rm -f -- "$_rbody"; die "index through Caddy failed (code $_icode)"; fi
+    grep -q '<html' "$_rbody" || { rm -f -- "$_rbody"; die "index through Caddy has no <html content"; }
+    rm -f -- "$_rbody"
+    log "verified through Caddy ($CADDY_ORIGIN/$_path/)"
+fi
+log "deployed '$_id'"

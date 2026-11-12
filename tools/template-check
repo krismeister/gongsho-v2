@@ -1,0 +1,88 @@
+#!/bin/sh
+# tools/template-check — scaffold a scratch app, build, check, tear down.
+set -eu
+VERB=template-check
+case $0 in
+    */*) _d=$(dirname -- "$0") ;;
+    *) _d=$(dirname -- "$(command -v "$0" 2>/dev/null || printf '%s' "$0")") ;;
+esac
+[ -f "$_d/lib.sh" ] || { echo "error: cannot find lib.sh (invoked as $0)" >&2; exit 1; }
+. "$_d/lib.sh"
+
+print_help() { cat <<'EOF'
+usage: tools/template-check <template>
+
+Scaffold a scratch deployment of the template, build it, assert
+regen-cleanliness, run check (starting the API first), then tear down
+fully including the retire archives. Refuses to run when scratch
+residue or another template-check run exists.
+
+Prerequisites: Go/Node.js toolchains per template, Caddy running, yq, curl.
+EOF
+}
+
+case "${1:-}" in -h|--help) print_help; exit 0 ;; esac
+[ $# -eq 1 ] || usage "want exactly one template name"
+_t=$1
+validate_template_name "$_t"
+_id="tplcheck_tmp_$_t"
+_path=$(id_to_path "$_id")
+_kind=$(template_kind "$_t")
+_app="$REPO_ROOT/apps/$_path"
+
+if deployment_exists "$_id" || [ -e "$_app" ] || [ -e "$(proxy_file "$_id")" ] || [ -e "$(data_dir "$_id")" ]; then
+    die "scratch residue for '$_id' exists (remove apps/$_path and proxy/data remnants, then retry)"
+fi
+_lock="$REPO_ROOT/run/template-check.lock"
+ensure_dir "$REPO_ROOT/run" || die "cannot create run dir"
+if ! mkdir -- "$_lock" 2>/dev/null; then
+    die "another template-check is running (lock $_lock; remove it if stale)"
+fi
+_cleanup() {
+    trap - EXIT INT TERM
+    if [ "$_kind" = "api" ]; then sh "$_d/stop" "$_id" || true; fi
+    sh "$_d/retire" "$_id" || true
+    rm -rf -- "$_app" "$_app".retired-* "$REPO_ROOT/data/$_path" "$REPO_ROOT/data/$_path".retired-* "$(bin_dir "$_id")" || true
+    rmdir -- "$_lock" 2>/dev/null || true
+}
+trap '_cleanup; exit 130' INT
+trap '_cleanup; exit 143' TERM
+trap '_cleanup' EXIT
+
+log "checking template '$_t' (scratch $_id)"
+sh "$_d/create" "$_path" --template "$_t" || die "create step failed"
+if [ "$_kind" = "ui" ]; then
+    ( cd "$_app" && npm install ) || die "npm install failed (see above)"
+fi
+sh "$_d/build" "$_id" || die "build step failed"
+
+_h1=$(mktemp) || die "cannot create temp file"
+_h2=$(mktemp) || die "cannot create temp file"
+if [ "$_kind" = "api" ]; then
+    ( cd "$_app" && find gen -type f -exec sha256sum {} + | sort -k2 ) >"$_h1" || die "cannot hash gen/"
+    _modline=$(cd "$_app" && go list -m 2>&1) || die "go list failed: $_modline"
+    ( cd "$_app" && go run goa.design/goa/v3/cmd/goa gen "$_modline/design" && cp gen/http/openapi3.json gen/openapi.json ) || die "regen failed (see above)"
+    ( cd "$_app" && find gen -type f -exec sha256sum {} + | sort -k2 ) >"$_h2" || die "cannot hash gen/"
+    cmp -s -- "$_h1" "$_h2" || die "gen/ is not regen-clean (regeneration changed committed output)"
+    log "gen/ regen-clean"
+else
+    ( cd "$_app" && find src/client -type f -exec sha256sum {} + | sort -k2 ) >"$_h1" || die "cannot hash src/client/"
+    ( cd "$_app" && npm run gen-client ) || die "client regen failed (see above)"
+    ( cd "$_app" && find src/client -type f -exec sha256sum {} + | sort -k2 ) >"$_h2" || die "cannot hash src/client/"
+    cmp -s -- "$_h1" "$_h2" || die "src/client/ is not regen-clean (regeneration changed committed output)"
+    log "src/client/ regen-clean"
+fi
+rm -f -- "$_h1" "$_h2"
+
+if [ "$_kind" = "api" ]; then
+    sh "$_d/start" "$_id" || die "start step failed"
+fi
+sh "$_d/check" "$_id" || die "check step failed"
+if [ "$_kind" = "api" ]; then
+    sh "$_d/stop" "$_id" || die "stop step failed"
+fi
+sh "$_d/retire" "$_id" || die "retire step failed"
+rm -rf -- "$_app".retired-* "$REPO_ROOT/data/$_path".retired-* || die "cannot remove retire archives"
+rmdir -- "$_lock" || die "cannot release lock"
+trap - EXIT INT TERM
+log "template '$_t' passed"

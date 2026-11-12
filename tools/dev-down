@@ -1,0 +1,77 @@
+#!/bin/sh
+# tools/dev-down — tear down a dev session (copies, routes, scratch).
+set -eu
+VERB=dev-down
+case $0 in
+    */*) _d=$(dirname -- "$0") ;;
+    *) _d=$(dirname -- "$(command -v "$0" 2>/dev/null || printf '%s' "$0")") ;;
+esac
+[ -f "$_d/lib.sh" ] || { echo "error: cannot find lib.sh (invoked as $0)" >&2; exit 1; }
+. "$_d/lib.sh"
+
+print_help() { cat <<'EOF'
+usage: tools/dev-down [--keep-scratch] <session>
+
+Kill the session's dev copies, remove its routes plus reload, delete its
+scratch. Unknown or already-removed sessions are a quiet success.
+--keep-scratch preserves run/<session>/ for debugging (used by e2e on
+failure). Orphan cleanup is manual; no sweep verb exists.
+
+Prerequisites: yq.
+EOF
+}
+
+_keep=0; _session=""
+while [ $# -gt 0 ]; do
+    case $1 in
+        -h|--help) print_help; exit 0 ;;
+        --keep-scratch) _keep=1; shift ;;
+        --*) usage "unknown flag '$1'" ;;
+        *) [ -z "$_session" ] || usage "unexpected argument '$1' (want exactly one session)"
+            _session=$1; shift ;;
+    esac
+done
+[ -n "$_session" ] || usage "missing session"
+validate_session "$_session"
+
+_fail=0
+_changed_routes=0
+for _pidf in "$REPO_ROOT"/proxy/sockets/*.dev-"$_session".pid; do
+    [ -e "$_pidf" ] || break
+    stop_pidfile "$_pidf" "$STOP_GRACE" || _fail=1
+done
+for _sock in "$REPO_ROOT"/proxy/sockets/*.dev-"$_session".sock; do
+    [ -e "$_sock" ] || break
+    rm -f -- "$_sock" || _fail=1
+done
+for _log in "$REPO_ROOT"/proxy/sockets/*.dev-"$_session".log; do
+    [ -e "$_log" ] || break
+    rm -f -- "$_log" || _fail=1
+done
+for _route in "$REPO_ROOT"/proxy/dev.d/"$_session"-*; do
+    [ -e "$_route" ] || break
+    rm -f -- "$_route" || _fail=1
+    _changed_routes=1
+done
+if [ "$_changed_routes" -eq 1 ]; then
+    caddy_reload || _fail=1
+else
+    log "no dev routes to remove"
+fi
+_scratch=$(run_session_dir "$_session")
+if [ "$_keep" -eq 1 ]; then
+    log "scratch preserved at $_scratch"
+else
+    if [ -e "$_scratch" ]; then
+        rm -rf -- "$_scratch" || _fail=1
+        log "removed scratch"
+    else
+        log "no scratch to remove"
+    fi
+fi
+if [ "$_fail" -eq 0 ]; then
+    log "session '$_session' down"
+else
+    log "session '$_session' down with errors"
+    exit 1
+fi

@@ -1,0 +1,118 @@
+#!/bin/sh
+# tools/create — scaffold a new deployment from a template.
+set -eu
+VERB=create
+case $0 in
+    */*) _d=$(dirname -- "$0") ;;
+    *) _d=$(dirname -- "$(command -v "$0" 2>/dev/null || printf '%s' "$0")") ;;
+esac
+[ -f "$_d/lib.sh" ] || { echo "error: cannot find lib.sh (invoked as $0)" >&2; exit 1; }
+. "$_d/lib.sh"
+
+print_help() { cat <<'EOF'
+usage: tools/create <path> --template <name>
+
+Scaffold a new deployment: validate the ID, copy the template scaffold,
+write the harness-owned pin, migrate the database from zero (APIs),
+render the stable proxy stanza, and reload Caddy.
+
+  <path>            slash path team/project/deployment (becomes the ID)
+  --template <name> goa-api or react-ui (also --template=<name>)
+
+Prerequisites: Go toolchain (APIs), Caddy running, yq.
+EOF
+}
+
+_path=""; _template=""
+while [ $# -gt 0 ]; do
+    case $1 in
+        -h|--help) print_help; exit 0 ;;
+        --template)
+            shift
+            [ $# -gt 0 ] || usage "missing value for --template"
+            _template=$1; shift ;;
+        --template=*) _template=${1#--template=}; shift ;;
+        --*) usage "unknown flag '$1'" ;;
+        *) [ -z "$_path" ] || usage "unexpected argument '$1' (want exactly one path)"
+            _path=$1; shift ;;
+    esac
+done
+[ -n "$_path" ] || usage "missing deployment path"
+[ -n "$_template" ] || usage "missing --template <name>"
+validate_path "$_path"
+validate_template_name "$_template"
+
+_id=$(path_to_id "$_path")
+_kind=$(template_kind "$_template")
+_tvars=$(tpl_get "$_template" '.vars | length')
+[ "$_tvars" = "1" ] || die "template '$_template' must declare exactly vars: [id]"
+[ "$(tpl_get "$_template" '.vars[0]')" = "id" ] || die "template '$_template' must declare exactly vars: [id]"
+
+_app="$REPO_ROOT/apps/$_path"
+if [ -e "$_app" ]; then die "apps/$_path already exists (remove it to re-create)"; fi
+if [ -e "$(proxy_file "$_id")" ]; then die "proxy file for '$_id' already exists (remove it to re-create)"; fi
+if [ -e "$(data_dir "$_id")" ]; then die "data/$_path already exists (remove it to re-create)"; fi
+
+_src="$REPO_ROOT/templates/$_template/app"
+mkdir -p -- "$_app" || die "cannot create apps/$_path"
+cp -r -- "$_src/." "$_app/" || die "scaffold copy failed"
+
+if [ "$_kind" = "api" ]; then
+    _mod="gongsho/$_path"
+    ( cd "$_app" && grep -rl 'gongsho/template/goa-api' --include='*.go' --include='go.mod' . | while IFS= read -r _f; do
+        sed -i "s|gongsho/template/goa-api|$_mod|g" "$_f"
+    done ) || die "module path render failed"
+    if grep -rq 'gongsho/template/goa-api' "$_app" --include='*.go' --include='go.mod'; then
+        die "module token render incomplete"
+    fi
+    grep -q -F -- "$_mod" "$_app/go.mod" || die "module render produced no result in go.mod"
+    sed -i "s|{{ID}}|$_id|g; s|{{PATH}}|$_path|g" "$_app/README.md" || die "README render failed"
+    if grep -rq -F -e '{{ID}}' -e '{{PATH}}' -e '${ID}' -e '${PATH}' "$_app"; then
+        die "scaffold left unrendered placeholders"
+    fi
+    cp -- "$_app/.example.env" "$_app/.env" || die "cannot write .env"
+    need_cmd go "Go toolchain (documented prerequisite)"
+    need_cmd sha256sum "hashing"
+    _modline=$(cd "$_app" && go list -m 2>&1) || die "go list failed: $_modline"
+    ( cd "$_app" && go run goa.design/goa/v3/cmd/goa gen "$_modline/design" ) || die "goa gen failed (see above)"
+    [ -f "$_app/gen/http/openapi3.json" ] || die "goa gen emitted no gen/http/openapi3.json"
+    _gtmp=$(tmp_in_dir "$_app/gen")
+    cp -- "$_app/gen/http/openapi3.json" "$_gtmp" || die "spec normalize copy failed"
+    atomic_mv "$_gtmp" "$_app/gen/openapi.json"
+    ( cd "$_app" && go mod tidy ) || die "go mod tidy failed (see above)"
+    _wantmod=$(sed "s|gongsho/template/goa-api|gongsho/$_path|g" "$_src/go.mod" | sha256sum | cut -d' ' -f1)
+    [ "$_wantmod" = "$(sha256_file "$_app/go.mod")" ] || die "go.mod is not tidy-complete (template pins incomplete)"
+    [ "$(sha256_file "$_src/go.sum")" = "$(sha256_file "$_app/go.sum")" ] || die "go.sum is not tidy-complete (template pins incomplete)"
+    log "scaffolded API (module $_mod, gen/ generated)"
+else
+    if grep -rq -F -e '{{ID}}' -e '{{PATH}}' -e '${ID}' -e '${PATH}' "$_app"; then
+        die "scaffold contains unrendered placeholders"
+    fi
+    log "scaffolded UI (as-is copy)"
+fi
+
+_ver=$(tpl_get "$_template" '.version')
+_pin_tmp=$(tmp_in_dir "$_app")
+{
+    printf 'id: %s\n' "$_id"
+    printf 'path: %s\n' "$_path"
+    printf 'template: %s\n' "$_template"
+    printf 'templateVersion: "%s"\n' "$_ver"
+    printf 'vars: {}\n'
+    if [ "$_kind" = "api" ]; then
+        printf 'db:\n  type: SQLite\n  path: data/%s/app.db\n' "$_path"
+    fi
+    printf 'created: "%s"\n' "$(utc_now)"
+} >"$_pin_tmp"
+atomic_mv "$_pin_tmp" "$_app/.gongsho-deployment.yaml"
+validate_pin "$_id"
+log "wrote pin"
+
+if [ "$_kind" = "api" ]; then
+    sh "$_d/migrate" "$_id" || die "migrate step failed"
+fi
+
+render_stanza "$_template" "$_id" "$_path" "$(proxy_file "$_id")"
+log "rendered proxy file"
+caddy_reload
+log "created $_id ($_template $_ver) at apps/$_path"

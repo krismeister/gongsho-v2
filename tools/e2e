@@ -1,0 +1,123 @@
+#!/bin/sh
+# tools/e2e — hermetic end-to-end run through per-session dev routes.
+set -eu
+VERB=e2e
+case $0 in
+    */*) _d=$(dirname -- "$0") ;;
+    *) _d=$(dirname -- "$(command -v "$0" 2>/dev/null || printf '%s' "$0")") ;;
+esac
+[ -f "$_d/lib.sh" ] || { echo "error: cannot find lib.sh (invoked as $0)" >&2; exit 1; }
+. "$_d/lib.sh"
+
+print_help() { cat <<'EOF'
+usage: tools/e2e <id>...
+
+Hermetic run: mint a fresh session, build every deployment, build UI dev
+bundles, bring up dev routes, export the e2e environment contract, run
+the per-template runners (APIs first, then UIs), tear down always.
+Failures preserve run/<session>/ and print its path; successes clean
+fully. Include every API a tested UI consumes.
+
+Prerequisites: Go/Node.js toolchains, Playwright browsers (UIs),
+Caddy running, yq, curl.
+EOF
+}
+
+case "${1:-}" in -h|--help) print_help; exit 0 ;; esac
+[ $# -ge 1 ] || usage "want at least one deployment ID"
+_ids=""
+for _id in "$@"; do
+    validate_id "$_id"
+    validate_pin "$_id"
+    case " $_ids " in *" $_id "*) ;; *) _ids="$_ids $_id";; esac
+done
+
+_session=$(mint_session)
+_failed=1
+_teardown() {
+    trap - EXIT INT TERM
+    if [ "$_failed" -eq 0 ]; then
+        sh "$_d/dev-down" "$_session" || true
+    else
+        sh "$_d/dev-down" --keep-scratch "$_session" || true
+        log "scratch preserved at $(run_session_dir "$_session")"
+    fi
+}
+trap '_teardown; exit 130' INT
+trap '_teardown; exit 143' TERM
+trap '_teardown' EXIT
+
+log "session $_session"
+ensure_dir "$(artifacts_dir "$_session")" || die "cannot create artifacts dir"
+
+for _id in $_ids; do
+    sh "$_d/build" "$_id" || die "build failed for '$_id'"
+done
+
+for _id in $_ids; do
+    _t=$(pin_template "$_id")
+    _kind=$(template_kind "$_t")
+    if [ "$_kind" = "ui" ]; then
+        _path=$(id_to_path "$_id")
+        _app=$(app_dir "$_id")
+        _bdir=$(dev_bundle_dir "$_session" "$_id")
+        ( cd "$_app" && npm run build:dev -- --base="/dev/$_session/$_path/" ) || die "dev bundle build failed for '$_id'"
+        [ -f "$_app/dist/index.html" ] || die "dev bundle build produced no dist/index.html"
+        rm -rf -- "$_bdir"
+        ensure_dir "$(dirname -- "$_bdir")" || die "cannot create bundle scratch"
+        mv -- "$_app/dist" "$_bdir" || die "cannot stage dev bundle"
+        write_gen_config "$_bdir/gen-config.json" "$_app" "/dev/$_session"
+        log "built dev bundle for '$_id'"
+    fi
+    unset _t _kind
+done
+
+sh "$_d/dev-up" "$_session" $_ids || die "dev-up failed"
+
+export E2E_BASE_URL="$CADDY_ORIGIN/dev/$_session"
+export E2E_ARTIFACTS_DIR="$(artifacts_dir "$_session")"
+for _id in $_ids; do
+    _var="E2E_APP_$(id_slug "$_id")"
+    export "$_var=$CADDY_ORIGIN/dev/$_session/$(id_to_path "$_id")"
+    unset _var
+done
+
+_rfail=0
+for _id in $_ids; do
+    _t=$(pin_template "$_id")
+    _kind=$(template_kind "$_t")
+    if [ "$_kind" = "api" ]; then
+        log "running API e2e for '$_id'"
+        _elog="$(artifacts_dir "$_session")/$_id.e2e.log"
+        _rc=0
+        ( cd "$(app_dir "$_id")" && go test ./e2e/ ) >"$_elog" 2>&1 || _rc=$?
+        cat -- "$_elog"
+        if [ "$_rc" -eq 0 ]; then
+            log "API e2e passed for '$_id'"
+        else
+            log "API e2e FAILED for '$_id'"; _rfail=1
+        fi
+    fi
+    unset _t _kind
+done
+for _id in $_ids; do
+    _t=$(pin_template "$_id")
+    _kind=$(template_kind "$_t")
+    if [ "$_kind" = "ui" ]; then
+        log "running UI e2e for '$_id' (browser run; this takes a while)"
+        if ( cd "$(app_dir "$_id")" && npm run test-e2e ); then
+            log "UI e2e passed for '$_id'"
+        else
+            log "UI e2e FAILED for '$_id'"; _rfail=1
+        fi
+    fi
+    unset _t _kind
+done
+
+if [ "$_rfail" -eq 0 ]; then
+    _failed=0
+    log "e2e passed"
+else
+    log "e2e failed"
+fi
+exit "$_rfail"
