@@ -185,7 +185,7 @@ runtime layout), `e2e-standard.md` (env contract plus runners),
 - check: direct-socket API checks plus UI bundle checks, no browser, no Caddy.
 - refresh-spec: explicit copy of an API's current spec into a UI snapshot;
   never automatic.
-- retire: stop, remove proxy file plus reload, archive the app dir.
+- retire: stop, remove proxy file plus reload, archive the app dir plus its `data/` dir (assumed).
 - start/stop/restart/status: pidfile supervision per deployment; status covers
   process state plus endpoint health. Pids live beside sockets.
 
@@ -280,7 +280,8 @@ compiler-plus-regen strictness only; TanStack later; constants via first
 migrations; prune-to-three backups; migrate pin in `tools/`; go module path convention;
 `app.env` config; `/healthz` shape; `/openapi.json` route; E2E env names; Hey
 per-spec loop with committed output; atomic `bin/` promotion; `*.db` ignored;
-dev bundle profile (maps on, minify off); demo composition.
+dev bundle profile (maps on, minify off); demo composition; retire archives
+data alongside; backup suffix `.bak-<timestamp>`.
 
 ## Deferred
 

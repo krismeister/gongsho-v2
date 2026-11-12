@@ -17,7 +17,7 @@ alongside Go, Node, Caddy).
   (APIs) or bundle swap (UIs), verify through Caddy. Restores DB backup and
   aborts loudly on failure.
 - `retire <id>` — stop, remove proxy file plus reload, archive the app dir
-  (in v1, assumed).
+  plus its `data/` dir (in v1, assumed; archive alongside, never auto-delete).
 - `start|stop|restart|status <id>` — pidfile supervision; status covers
   process state plus endpoint health.
 - `dev-up <session> <id>...` — dev copies for a session: sockets, scratch

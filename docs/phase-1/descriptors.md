@@ -38,7 +38,7 @@ templateVersion: "1.0"
 vars: {}
 db:
   type: SQLite
-  path: apps/acme/shop/api-1/app.db
+  path: data/acme/shop/api-1/app.db
 created: "2026-11-11T12:00:00Z"
 ```
 
