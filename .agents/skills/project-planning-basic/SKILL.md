@@ -1,6 +1,6 @@
 ---
-name: project-planner
-description: Turn human input into designed, scaffolded, and deployed gongsho deployments: APIs first, then UIs, then verify.
+name: project-planning-basic
+description: Turn human input into designed, scaffolded, and deployed gongsho deployments directly: APIs first, then UIs, then verify.
 ---
 
 # Project Planner
