@@ -25,7 +25,7 @@ Full tree. `(c)` committed, `(g)` gitignored, `*` created per deployment.
 │   ├── dev.d/ (g)
 │   └── sockets/ (g) (sockets plus pidfiles)
 ├── run/ (g) (per-session scratch)
-└── tools/ (c) (*.sh verbs plus lib.sh)
+└── tools/ (c) (*.sh verbs, lib.sh wrapper plus lib/ modules, tests/ suites)
 ```
 
 Rules:

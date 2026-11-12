@@ -8,7 +8,10 @@ no implementation exists yet.
 
 ## Prerequisites
 
-- Go 1.27.3 or later, Node.js 22 or later, Caddy, yq.
+- Go 1.27.3 or later, Node.js 22 or later, Caddy, yq
+  (mikefarah's Go yq — `yq --version` must print a
+  `github.com/mikefarah/yq` line, not a `jq` line; the Python `yq`
+  wrapper is a different tool and will not work).
 - Playwright browsers install per UI project
   (`npx playwright install --with-deps`).
 - Standard shell tooling: git, curl, bash.
@@ -16,8 +19,12 @@ no implementation exists yet.
 Omarchy/Arch install for the toolchain:
 
 ```sh
-sudo pacman -S go caddy yq nodejs
+sudo pacman -S go caddy go-yq nodejs
 ```
+
+(`go-yq` is the Arch package for mikefarah yq; it replaces/conflicts
+with the Python `yq` package. If `yq` is already installed, pacman
+offers the replacement during install.)
 
 ## Docs
 

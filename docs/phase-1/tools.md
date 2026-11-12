@@ -44,6 +44,33 @@ alongside Go, Node, Caddy).
 
 ## `lib.sh` (sourced, never run)
 
-ID validation and parsing, ID↔path derivation, tree/socket/pidfile/proxy
-path builders, Caddy reload, YAML reads, atomic writes, logging, prerequisite
-checks.
+Thin wrapper: globals, frozen constants, and `VERB` default, then sources
+every module in `lib/`. Verbs source `tools/lib.sh` only, never modules
+directly. One concern per module file:
+
+- `log.sh` — `log`/`err`/`die`/`usage`, exit 1/2 discipline.
+- `ids.sh` — ID/path/session validation and ID↔path derivation.
+- `paths.sh` — tree/socket/pidfile/proxy path builders.
+- `pin.sh` — YAML reads via mikefarah `yq` (flavor-guarded), pin
+  validation, template kind.
+- `io.sh` — dir ensure, atomic temp-then-rename writes, time, session
+  minting, hashing.
+- `caddy.sh` — Caddy reload.
+- `health.sh` — direct-socket and TCP getters, JSON comparison,
+  polled health wait.
+- `proc.sh` — pidfile reads, liveness, supervised stop.
+- `render.sh` — stable stanza render, asserted dev-stanza derivation,
+  `gen-config.json` writer.
+- `env.sh` — `.env` ensure plus source, pin-derived injected exports.
+
+## `tests/` (committed, hermetic)
+
+`tools/tests/run.sh` runs every suite with a combined pass/fail
+summary and exits nonzero on any failure. Suites derive the repo root
+from their own location, build all fixtures at runtime under `mktemp`
+scratch (trap-cleaned), and work against fake repos only — the real
+`apps/`, `bin/`, `proxy/`, `run/`, and `tools/` trees are never
+written. Static fixtures live under `tools/tests/fixtures/`. Every
+verb carries positive plus key failure cases here; `lib.sh` changes
+must keep the suite green unmodified unless the change itself is the
+contract.
