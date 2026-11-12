@@ -1,0 +1,4 @@
+# Vite build output.
+dist/
+# Local Playwright output (harness runs redirect to E2E_ARTIFACTS_DIR).
+test-results/

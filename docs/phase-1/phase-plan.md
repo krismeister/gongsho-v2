@@ -253,7 +253,8 @@ runtime layout), `e2e-standard.md` (env contract plus runners),
 Freeze first (already decided; these docs are the freeze): descriptor
 schemas, ID rules, e2e env interface. Templates pack (one agent per template)
 and runtime pack (`proxy/` behavior, `run/` conventions) run parallel now;
-tools pack (`tools/` plus `lib.sh`) starts once templates complete;
+tools pack (`tools/` plus `lib.sh`) starts once templates complete and lands
+as one cohesive unit;
 integration pack (runners wired, demo apps, exit gate) last. Packs share no
 files; each validates against the frozen contracts, never against another
 pack's unfinished output.
@@ -282,7 +283,12 @@ migrations; prune-to-three backups; migrate pin in `tools/`; go module path conv
 `app.env` config; `/healthz` shape; `/openapi.json` route; E2E env names; Hey
 per-spec loop with committed output; atomic `bin/` promotion; `*.db` ignored;
 dev bundle profile (maps on, minify off); demo composition; retire archives
-data alongside; backup suffix `.bak-<timestamp>`.
+data alongside; backup suffix `.bak-<timestamp>`; api binary named `api`;
+`http://` site scheme; unmatched-200 contract; trailing-slash rule; injected
+env set (`DB_PATH`, `SOCKET_PATH`, `DEPLOYMENT_ID`, `TEMPLATE`,
+`TEMPLATE_VERSION`); Hey flags win over config file; `.example.env` replaces
+`app.env`; UI `.example.env` comments-only; `/info` serves id plus template
+plus version.
 
 ## Deferred
 

@@ -1,0 +1,2 @@
+Generated Hey API clients land here: one src/client/<api-id>/ dir per snapshot.
+Committed, never hand-edited. Regenerate with `npm run gen-client`.

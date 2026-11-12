@@ -14,11 +14,15 @@ Goa quickstart at time of writing; pin exact versions at implementation.
 - `service/` — implementation skeleton behind the generated interfaces.
 - `migrations/0001_init.<up,down>.sql` — constants-first migration as an
   up/down pair (golang-migrate file convention).
-- `e2e/e2e_test.go` — one HTTP flow test via `E2E_BASE_URL`, testify
-  `require` for setup and `assert` for flow checks.
-- `app.env` — `KEY=VALUE` runtime config: socket path, db path, log level
-  (assumed format; read with plain env handling, no YAML in the app).
-- `main.go` — entrypoint: open DB, serve the Goa server on the unix socket.
+- `e2e/e2e_test.go` — HTTP flow tests via `E2E_BASE_URL`, testify `require`
+  for setup and `assert` for flows. Must assert `/info` (`id` exact from the
+  request URL, version present and wellformed).
+- `.example.env` — documents app env: injected `{{DB_PATH}}`/`{{SOCKET_PATH}}`
+  (never set here) plus settable tunables. Copied to `.env` at scaffold; the
+  app never reads this file directly. (Replaces the earlier `app.env` idea.)
+- `main.go` — entrypoint: reads `DB_PATH`/`SOCKET_PATH` from the environment
+  (injected by `start`; the app never derives paths), opens the DB, serves
+  the Goa server on the unix socket.
 - `README.md` — scaffold, run, wire, and test commands for Muse.
 
 ## Generation and guarantees
@@ -28,5 +32,7 @@ Goa quickstart at time of writing; pin exact versions at implementation.
 - Build normalizes the emitted OpenAPI to `gen/openapi.json` and serves it
   at `GET /openapi.json` (assumed route).
 - Health: `GET /healthz` returns 200 plus `{"status":"ok"}` (assumed shape).
+- Info: `GET /info` returns `id`, `template`, `templateVersion` (all injected
+  env, so always truthful). Permanent endpoint, asserted by e2e.
 - The server listens on its unix socket (acceptance criterion: verify at
   implementation; loopback-TCP fallback documented in phase-plan Risks).

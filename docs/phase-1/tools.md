@@ -12,7 +12,12 @@ alongside Go, Node, Caddy).
   create empty DB plus migrate to latest, render proxy file, reload Caddy.
   Verb name `create` assumed.
 - `build <id>` — app source to mirrored `bin/` output (atomic promotion via
-  `.new` plus rename). UI builds regen Hey API clients from snapshots first.
+  `.new` plus rename). API output is a single binary at `bin/<id>/api`
+  (assumed name); UI output is the static bundle only — `bin/` never holds
+  anything else. UI builds regen Hey API clients from snapshots first, but
+  only after the freshness check passes, so regen input is pinned and the
+  write is normally a no-op; unexpected diffs surface in git status. Never
+  touches proxy, DBs, or processes.
 - `deploy <id>` — build, ensure proxy file, reload, migrate plus restart
   (APIs) or bundle swap (UIs), verify through Caddy. Restores DB backup and
   aborts loudly on failure.

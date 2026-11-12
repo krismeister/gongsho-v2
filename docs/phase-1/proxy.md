@@ -6,9 +6,9 @@ directive behavior below follows the Caddy docs cited in phase-plan Sources.
 ## Main Caddyfile (`proxy/Caddyfile`)
 
 ```
-localhost:8080 {
-    import deployments/*
-    import dev.d/*
+http://localhost:8080 {
+	import deployments/*
+	import dev.d/*
 }
 ```
 
@@ -59,3 +59,12 @@ handle_path /acme/shop/ui-1/* {
 Same shapes under `/dev/<session>/` with dev sockets and scratch roots,
 written temp-then-rename by `dev-up` and removed by `dev-down`, with a Caddy
 reload after each change. Logging stays default in v1 (assumed).
+
+## Edge behavior (verified contract)
+
+- The `http://` scheme prefix disables automatic HTTPS; without it Caddy
+  attempts TLS plus a privileged `:80` bind and plain-HTTP clients break.
+- Unmatched paths return 200 with an empty body, not 404. All verification
+  asserts on body content, never status alone.
+- Deployment roots require the trailing slash: `/<path>/` proxies, `/<path>`
+  does not. Template READMEs must state this.

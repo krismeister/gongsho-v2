@@ -3,8 +3,11 @@
 ## Process lifecycle (pidfile supervisor, per deployment)
 
 - `start`: refuse if the pidfile names a live process; unlink any stale
-  socket; launch detached; record the pid; wait on health with a timeout
-  (assumed: 10s) and roll back the start on timeout.
+  socket; ensure `.env` exists (copy from `.example.env` if missing), source
+  it, then export resolved `DB_PATH`/`SOCKET_PATH`/`DEPLOYMENT_ID`/`TEMPLATE`/
+  `TEMPLATE_VERSION` (all pin-derived, per instance) and launch detached;
+  record the pid; wait on
+  health with a timeout (assumed: 10s) and roll back the start on timeout.
 - `stop`: SIGTERM, 5s grace (assumed), then SIGKILL; remove the pidfile on a
   clean stop.
 - `restart`: stop plus start as one verb (brief 502 window accepted, no

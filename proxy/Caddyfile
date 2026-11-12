@@ -1,4 +1,4 @@
-localhost:8080 {
-    import deployments/*
-    import dev.d/*
+http://localhost:8080 {
+	import deployments/*
+	import dev.d/*
 }

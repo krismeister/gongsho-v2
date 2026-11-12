@@ -1,0 +1,2 @@
+Snapshots land here via refresh-spec: one <api-id>.openapi.json per consumed API.
+Empty at scaffold. Presence declares consumption; each UI upgrades independently.

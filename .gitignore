@@ -6,9 +6,14 @@ proxy/dev.d/
 run/
 # UI dependencies.
 node_modules/
+# Local environment values (root and per-app). Examples stay committed.
+.env
 # Tooling state dirs (empty sandbox stubs; never commit contents).
 # NOTE: .agents/ is intentionally NOT ignored — project skills live there.
 .eden/
 .hg/
 .muse/
 .sl/
+
+# temp dir
+tmp
