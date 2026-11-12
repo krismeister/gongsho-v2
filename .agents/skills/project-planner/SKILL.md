@@ -21,7 +21,7 @@ tools/create acme/shop/api-1 --template goa-api
 tools/create acme/shop/ui-1 --template react-ui
 tools/deploy acme_shop_api-1
 tools/refresh-spec acme_shop_ui-1 acme_shop_api-1
-curl http://localhost:8080/acme/shop/api-1/healthz
+curl http://localhost:8181/acme/shop/api-1/healthz
 ```
 
 Swap in your real team, project, and deployment names. ID form
@@ -40,5 +40,9 @@ lowercase, digits, and hyphens only.
 4. UIs: per UI, `ui-phase.md`.
 5. Verify: `deploy.md`. Report each deployment URL and check. Done.
 
-A failure you cannot resolve from its own error message: report it
-and stop.
+## Errors
+
+Stop on any error: a failing verb, an unexpected output, a check
+that does not match, anything you did not expect. Leave the tree as
+is and report what you attempted, the exact error text, and what was
+already complete. Resume only when told to.

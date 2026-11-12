@@ -13,8 +13,8 @@
     `proxy/dev.d/<session>-<id>`.
   - Socket: `proxy/sockets/<id>.sock`; dev socket:
     `<id>.dev-<session>.sock`; pidfile beside each socket.
-- URLs (Caddy on `:8080`, assumed): stable
-  `http://localhost:8080/<path>/`; dev
-  `http://localhost:8080/dev/<session>/<path>/`.
+- URLs (Caddy on `:8181`, assumed): stable
+  `http://localhost:8181/<path>/`; dev
+  `http://localhost:8181/dev/<session>/<path>/`.
 - No registry in v1: existence checks read the filesystem, listing walks the
   trees, type and version come from pins.

@@ -50,7 +50,7 @@ runtime layout), `e2e-standard.md` (env contract plus runners),
   ([registry](https://registry.npmjs.org/openapi-typescript/latest)) is the
   documented fallback. TanStack hooks (noted on the same Hey API pages) stay
   a later plugin toggle.
-- Proxy is Caddy on one localhost port (`:8080`, assumed): prefix-strip
+- Proxy is Caddy on one localhost port (`:8181`, assumed): prefix-strip
   subfolder proxying ([reverse_proxy](https://caddyserver.com/docs/caddyfile/directives/reverse_proxy)),
   glob imports ([import](https://caddyserver.com/docs/caddyfile/directives/import)),
   graceful reload ([command line](https://caddyserver.com/docs/command-line)),
@@ -272,7 +272,7 @@ pack's unfinished output.
 
 ## Assumed defaults (flag any to change)
 
-Port `:8080`; strip API prefixes; constant Host; UI fallback plus cache split;
+Port `:8181`; strip API prefixes; constant Host; UI fallback plus cache split;
 default Caddy logging; `.sh` harness; `create` name; `retire` in v1;
 `template-new` skipped; bumps later; `dev-up` routes-only with e2e building
 bundles; empty `vars` kept; deployment dirs flat once scaffolded; app config

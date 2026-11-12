@@ -6,6 +6,8 @@ proxy/dev.d/
 run/
 # UI dependencies.
 node_modules/
+# Local Go caches (harness fallback when the default cache is unwritable).
+.cache/
 # Local environment values (root and per-app). Examples stay committed.
 .env
 # Tooling state dirs (empty sandbox stubs; never commit contents).

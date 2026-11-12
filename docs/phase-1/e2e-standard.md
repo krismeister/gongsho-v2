@@ -8,9 +8,9 @@ preserve scratch and print its location; successes clean fully.
 
 The verb exports, and specs never hardcode addresses:
 
-- `E2E_BASE_URL` — session root, e.g. `http://localhost:8080/dev/a3f9`.
+- `E2E_BASE_URL` — session root, e.g. `http://localhost:8181/dev/a3f9`.
 - `E2E_APP_<IDSLUG>` — one full URL per deployment under test (ID uppercased,
-  e.g. `E2E_APP_ACME_SHOP_API_1=http://localhost:8080/dev/a3f9/acme/shop/api-1`).
+  e.g. `E2E_APP_ACME_SHOP_API_1=http://localhost:8181/dev/a3f9/acme/shop/api-1`).
 - `E2E_ARTIFACTS_DIR` — screenshots, traces, coverage reports land here.
 
 ## Runners (per template)

@@ -13,7 +13,7 @@ Deployment ID: `{{ID}}` (`{{PATH}}`).
 - Go 1.27.3 or later. Dependency versions are pinned in `go.mod`/`go.sum`;
   no `goa` CLI install is needed (generation runs via `go run` from module
   dependencies).
-- Caddy on `:8080` for proxied runs, `yq` for harness reads.
+- Caddy on `:8181` for proxied runs, `yq` for harness reads.
 - The `tools/` harness verbs referenced below (`build`, `migrate`, `start`,
   `e2e`) are the primary path; direct commands follow each for fallback.
 
@@ -108,7 +108,7 @@ curl --unix-socket proxy/sockets/{{ID}}.sock http://localhost/openapi.json
 
 ```sh
 tools/e2e {{ID}}            # from the repo root (primary)
-E2E_APP_DIRECT=http://localhost:8080/{{PATH}} go test ./e2e/  # direct (stable route must be up)
+E2E_APP_DIRECT=http://localhost:8181/{{PATH}} go test ./e2e/  # direct (stable route must be up)
 ```
 
 The tests resolve their base URL from the single `E2E_APP_*` variable when

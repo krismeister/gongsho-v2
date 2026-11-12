@@ -25,7 +25,7 @@ after scaffold changes nothing). Resolved at authoring (2026-11-11):
   is an optional convenience for `goa version` checks).
 - No C compiler needed: the SQLite driver is pure Go, so plain `go build`
   works anywhere Go works.
-- Caddy on `:8080` and `yq` for platform flows (proxying, harness reads).
+- Caddy on `:8181` and `yq` for platform flows (proxying, harness reads).
 
 ## Layout
 

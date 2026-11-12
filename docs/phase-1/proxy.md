@@ -6,7 +6,7 @@ directive behavior below follows the Caddy docs cited in phase-plan Sources.
 ## Main Caddyfile (`proxy/Caddyfile`)
 
 ```
-http://localhost:8080 {
+http://localhost:8181 {
 	import deployments/*
 	import dev.d/*
 }
