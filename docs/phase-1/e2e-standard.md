@@ -29,3 +29,12 @@ The verb exports, and specs never hardcode addresses:
 ui-dev routinely per change, planner as the cross-stack integration gate,
 api-dev only when proxy-path behavior is under test, human on demand. No
 caller shares sessions; isolation is structural, not polite.
+
+## Scratch ports
+
+Loop/scratch checkouts never share the machine ports: site 8281 with
+admin on 127.0.0.1:2020 (scratch `.env` sets `GONGSHO_PORT=8281`;
+scratch `proxy/Caddyfile` carries a global admin block plus the 8281
+site address — reloads follow the config file, so no flag changes),
+asserting both free before starting. Machine 8181/2019 belong to the
+regular runner alone.

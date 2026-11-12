@@ -28,3 +28,8 @@
 - Health probes hit the socket directly for lifecycle checks (e.g. curl's
   unix-socket mode) and go through Caddy for deploy verification, proving
   the full path.
+- Daemons die with a sandboxed starter: processes launched from a
+  sandboxed shell are gone by the next call (proven: healthy at deploy,
+  502 right after; bare `nohup ... &` does not survive). Start Caddy
+  from an unsandboxed shell, and supervised processes must launch
+  detached (new session) or from a shell that outlives the call.

@@ -26,7 +26,8 @@ file plus all three stanza shapes), `template-goa-api.md` and
 (every verb plus `lib.sh`), `supervision-and-runtime.md` (lifecycle plus
 runtime layout), `e2e-standard.md` (env contract plus runners),
 `migrations.md` (placement plus backup discipline), `spec-handoff.md`
-(snapshots plus freshness), `demo.md` (combined demo composition).
+(snapshots plus freshness), `demo.md` (combined demo composition),
+`environments.md` (machine plus app env, injected set, Go fallback).
 
 ## Key decisions
 
@@ -90,7 +91,8 @@ runtime layout), `e2e-standard.md` (env contract plus runners),
   `phase-plan.md` (this file), `repository-layout.md`, `descriptors.md`,
   `ids-and-routing.md`, `proxy.md`, `template-goa-api.md`,
   `template-react-ui.md`, `tools.md`, `supervision-and-runtime.md`,
-  `e2e-standard.md`, `migrations.md`, `spec-handoff.md`, `demo.md`
+  `e2e-standard.md`, `migrations.md`, `spec-handoff.md`, `demo.md`,
+  `environments.md`
 - `templates/<name>/`
   - `.gongsho-tpl.yaml` — manifest: name, version, vars, owned list
   - `config/` — template-owned material: `caddy/stanza`, defaults, health spec
@@ -288,7 +290,8 @@ data alongside; backup suffix `.bak-<timestamp>`; api binary named `api`;
 env set (`DB_PATH`, `SOCKET_PATH`, `DEPLOYMENT_ID`, `TEMPLATE`,
 `TEMPLATE_VERSION`); Hey flags win over config file; `.example.env` replaces
 `app.env`; UI `.example.env` comments-only; `/info` serves id plus template
-plus version.
+plus version; `GONGSHO_*` machine keys; scratch ports 8281/2020; Go-cache
+fallback plus `-buildvcs=false`; pin-fidelity create check.
 
 ## Deferred
 

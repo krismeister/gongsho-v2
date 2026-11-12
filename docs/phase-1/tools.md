@@ -54,7 +54,8 @@ directly. One concern per module file:
 - `pin.sh` — YAML reads via mikefarah `yq` (flavor-guarded), pin
   validation, template kind.
 - `io.sh` — dir ensure, atomic temp-then-rename writes, time, session
-  minting, hashing.
+  minting, hashing, Go-cache fallback plus `GOFLAGS` handling (see
+  `environments.md`).
 - `caddy.sh` — Caddy reload.
 - `health.sh` — direct-socket and TCP getters, JSON comparison,
   polled health wait.
