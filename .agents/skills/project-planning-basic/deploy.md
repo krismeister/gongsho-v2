@@ -1,6 +1,7 @@
 # Verify (deploy order plus checks)
 
-Order: every API, then every UI. (Automatic when phases run in order.)
+Run from the repo checkout. Order: every API, then every UI.
+(Automatic when phases run in order.)
 
 If Caddy is down, nothing verifies. Check and start:
 

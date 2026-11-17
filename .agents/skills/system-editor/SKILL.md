@@ -18,6 +18,21 @@ Read these before acting, in order:
 - `docs/phase-1/phase-plan.md` — the build plan and assumed defaults.
 - The relevant spec under `docs/phase-1/` for the area touched.
 
+## Layout (two roots)
+
+- `GONGSHO_HOME` (default: parent of the checkout): `apps/` (deep
+  `team/project/deployment`, planner working area — read, never write,
+  except republishing the `owned` proxy stanza) and `data/` (flat
+  `<id>/app.db`, harness-managed, never hand-edited).
+- `REPO_ROOT` (the checkout): `templates/`, `tools/`, `docs/` plus
+  runtime state `proxy/` (`Caddyfile` plus committed `deployments/`,
+  ignored `dev.d/`/`sockets/`), `bin/` (deep per-deployment, ignored),
+  `run/` (per-session scratch, ignored).
+- Pins carry data-root-relative `db.path`; stanza `{{REPO}}` renders
+  the checkout path, so moving a checkout means re-rendering proxy files.
+- Tests use one scratch dir as both roots; the real home trees
+  (`apps/`, `data/`) and repo trees are never written.
+
 ## Rules
 
 - Human-driven: act on system files only under explicit human tasking for that

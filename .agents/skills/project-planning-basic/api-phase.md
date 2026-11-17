@@ -1,6 +1,8 @@
 # API phase (per API)
 
-Work in `apps/<team>/<project>/<deployment>/`.
+Work in `../apps/<team>/<project>/<deployment>/` (from the repo
+checkout; the sibling `apps/` tree under `GONGSHO_HOME`). Shell below
+runs there; `tools/*` verbs run from the repo checkout.
 
 1. Write the schema in `design/` (Goa DSL).
 2. Generate and normalize:

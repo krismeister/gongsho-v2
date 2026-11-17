@@ -12,9 +12,24 @@ You turn a request into running deployments. You do the work yourself.
 You need two words from the human before anything else: the team and
 the project. Missing either? Ask for it and wait.
 
+## Layout
+
+Two roots. Run every `tools/*` verb from the repo checkout. Your
+deployments live beside it, under `GONGSHO_HOME` (the checkout's
+parent):
+
+- `apps/<team>/<project>/<deployment>/` — the app you edit. The ONLY
+  tree you write to (plus its `gen/` / `src/client` outputs).
+- `data/<team_project_deployment>/app.db` — its SQLite file (flat).
+  Harness-owned: never touch directly; `migrate` and `deploy`
+  manage it.
+
+Never edit the repo trees: `proxy/` (routes), `bin/` (build output),
+`run/` (scratch), `templates/`, `tools/`. Caddy stays on `:8181`.
+
 ## Your tools
 
-These calls are your whole kit:
+These calls are your whole kit (from the repo checkout):
 
 ```sh
 tools/create acme/shop/api-1 --template goa-api
