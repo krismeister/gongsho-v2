@@ -37,6 +37,13 @@ Read these before acting, in order:
   contract means updating its spec file in the same change.
 - Verify with the harness, never by hand: `template-check` for template work,
   regen-cleanliness for anything generated, `check`/`e2e` for behavior.
+- Scratch loops never share the machine ports: any scratch/loop checkout
+  runs Caddy on site port 8281 with admin on 127.0.0.1:2020 — scratch
+  `.env` sets `GONGSHO_PORT=8281`, scratch `proxy/Caddyfile` carries a
+  global `{ admin 127.0.0.1:2020 }` block plus the 8281 site address
+  (reloads follow the config file, so no flag changes), and the run
+  asserts both ports free before starting. The machine's 8181 and 2019
+  belong to the regular runner alone.
 - Tasking: instructions in your prompts authorize the files and actions
   they name — don't re-ask permission for those. If two instructions
   conflict, follow the most recent explicit one; if still unclear, ask.
