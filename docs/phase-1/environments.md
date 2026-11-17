@@ -11,6 +11,8 @@ when absent. Each key has a built-in default — env wins, defaults
 apply otherwise. The `GONGSHO_` prefix keeps machine config from
 leaking into app runtimes (the file is sourced with exports):
 
+- `GONGSHO_HOME` (default: parent of the checkout) — workspace home
+  holding `apps/` and `data/`.
 - `GONGSHO_HOST` / `GONGSHO_PORT` / `GONGSHO_SCHEME` (default
   `localhost` / `8181` / `http`) — compose `CADDY_ORIGIN`.
 - `GONGSHO_START_HEALTH_TIMEOUT` / `GONGSHO_STOP_GRACE` (default

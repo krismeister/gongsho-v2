@@ -38,7 +38,7 @@ if [ "$_kind" = "api" ]; then
     [ -f "$_pf" ] || die "proxy file missing for '$_id' (it renders once at create; restore it from git)"
     caddy_reload
     sh "$_d/migrate" "$_id" || die "migrate step failed"
-    sh "$_d/restart" "$_id" || die "restart step failed (database already migrated; backups retained under data/$_path/)"
+    sh "$_d/restart" "$_id" || die "restart step failed (database already migrated; backups retained under data/$_id/)"
     _hspec=$(health_spec "$_t")
     _hpath=$(yq eval -r '.path' "$_hspec" 2>/dev/null) || die "cannot read health spec"
     _hstatus=$(yq eval -r '.status' "$_hspec" 2>/dev/null) || die "cannot read health spec"

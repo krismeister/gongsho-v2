@@ -18,6 +18,7 @@ mkdir -p "$SCRATCH/smoke"
 export GONGSHO_REPO="$REAL"
 export VERB=libtest
 . "$REAL/tools/lib.sh"
+REALHOME=$GONGSHO_HOME
 
 # --- derivations -----------------------------------------------------------
 [ "$(id_to_path acme_shop_api-1)" = "acme/shop/api-1" ] && ok id_to_path || bad id_to_path
@@ -53,7 +54,9 @@ t2 validate_tpl-rejects-bogus validate_template_name nope
 ( validate_path acme_shop_api-1 ) 2>&1 | grep -q 'got ID-like' && ok path-hint || bad path-hint
 
 # --- path builders -------------------------------------------------------------
-[ "$(app_dir acme_shop_api-1)" = "$REAL/apps/acme/shop/api-1" ] && ok app_dir || bad app_dir
+[ "$(app_dir acme_shop_api-1)" = "$REALHOME/apps/acme/shop/api-1" ] && ok app_dir || bad app_dir
+[ "$(data_dir acme_shop_api-1)" = "$REALHOME/data/acme_shop_api-1" ] && ok data_dir || bad data_dir
+[ "$(data_root)" = "$REALHOME/data" ] && ok data_root || bad data_root
 [ "$(socket_path acme_shop_api-1)" = "$REAL/proxy/sockets/acme_shop_api-1.sock" ] && ok socket || bad socket
 [ "$(pidfile_path acme_shop_api-1)" = "$REAL/proxy/sockets/acme_shop_api-1.pid" ] && ok pidfile || bad pidfile
 [ "$(dev_proxy_file a3f9 acme_shop_api-1)" = "$REAL/proxy/dev.d/a3f9-acme_shop_api-1" ] && ok devproxy || bad devproxy
@@ -147,7 +150,7 @@ templateVersion: "1.0"
 vars: {}
 db:
   type: SQLite
-  path: data/acme/shop/api-1/app.db
+  path: acme_shop_api-1/app.db
 created: "2026-11-12T00:00:00Z"
 EOF
 cat > "$FR/apps/acme/shop/api-2/.gongsho-deployment.yaml" <<'EOF'
@@ -158,7 +161,7 @@ templateVersion: "1.0"
 vars: {}
 db:
   type: SQLite
-  path: data/acme/shop/api-2/app.db
+  path: acme_shop_api-2/app.db
 created: "2026-11-12T00:00:00Z"
 EOF
 cat > "$FR/apps/acme/shop/ui-1/.gongsho-deployment.yaml" <<'EOF'
@@ -169,7 +172,7 @@ templateVersion: "1.0"
 vars: {}
 created: "2026-11-12T00:00:00Z"
 EOF
-export GONGSHO_REPO="$FR"
+export GONGSHO_REPO="$FR" GONGSHO_HOME="$FR"
 # re-resolve REPO_ROOT the way a fresh source would
 REPO_ROOT="$FR"
 
@@ -180,7 +183,7 @@ REPO_ROOT="$FR"
 # pin negatives: mismatched path, api-without-db, ui-with-db
 mkdir -p "$FR/apps/acme/shop/bad-1" "$FR/apps/acme/shop/bad-2" "$FR/apps/acme/shop/bad-3"
 sed 's|path: acme/shop/api-1|path: acme/shop/other|' "$FR/apps/acme/shop/api-1/.gongsho-deployment.yaml" \
-    | sed 's|id: acme_shop_api-1|id: acme_shop_bad-1|; s|data/acme/shop/api-1|data/acme/shop/bad-1|' \
+    | sed 's|id: acme_shop_api-1|id: acme_shop_bad-1|; s|acme_shop_api-1/app.db|acme_shop_bad-1/app.db|' \
     > "$FR/apps/acme/shop/bad-1/.gongsho-deployment.yaml"
 ( validate_pin acme_shop_bad-1 ) >/dev/null 2>&1; [ $? -eq 1 ] && ok pin-mismatch || bad pin-mismatch
 sed 's|id: acme_shop_api-1|id: acme_shop_bad-2|; s|path: acme/shop/api-1|path: acme/shop/bad-2|; /^db:$/,/^  path: .*$/d' \
@@ -188,10 +191,10 @@ sed 's|id: acme_shop_api-1|id: acme_shop_bad-2|; s|path: acme/shop/api-1|path: a
 ( validate_pin acme_shop_bad-2 ) >/dev/null 2>&1; [ $? -eq 1 ] && ok pin-api-nodb || bad pin-api-nodb
 sed 's|id: acme_shop_ui-1|id: acme_shop_bad-3|; s|path: acme/shop/ui-1|path: acme/shop/bad-3|' \
     "$FR/apps/acme/shop/ui-1/.gongsho-deployment.yaml" > "$FR/apps/acme/shop/bad-3/.gongsho-deployment.yaml"
-printf 'db:\n  type: SQLite\n  path: data/acme/shop/bad-3/app.db\n' >> "$FR/apps/acme/shop/bad-3/.gongsho-deployment.yaml"
+printf 'db:\n  type: SQLite\n  path: acme_shop_bad-3/app.db\n' >> "$FR/apps/acme/shop/bad-3/.gongsho-deployment.yaml"
 ( validate_pin acme_shop_bad-3 ) >/dev/null 2>&1; [ $? -eq 1 ] && ok pin-ui-withdb || bad pin-ui-withdb
 [ "$(pin_template acme_shop_api-1)" = "goa-api" ] && ok pin-tpl || bad pin-tpl
-[ "$(pin_db_path acme_shop_api-1)" = "data/acme/shop/api-1/app.db" ] && ok pin-db || bad pin-db
+[ "$(pin_db_path acme_shop_api-1)" = "acme_shop_api-1/app.db" ] && ok pin-db || bad pin-db
 [ -z "$(pin_db_path acme_shop_ui-1)" ] && ok pin-nodb || bad pin-nodb
 
 # gen-config: two snapshots, reverse-alpha creation order

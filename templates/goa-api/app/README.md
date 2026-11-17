@@ -84,10 +84,10 @@ start when the database file is missing or the schema check fails.
 tools/start {{ID}}          # from the repo root (primary)
 ```
 
-Direct (from the repo root; match what `start` would inject from the pin):
+Direct (from `GONGSHO_HOME`; match what `start` would inject from the pin):
 
 ```sh
-SOCKET_PATH=proxy/sockets/{{ID}}.sock DB_PATH=data/{{PATH}}/app.db \
+SOCKET_PATH=gongsho_v2/proxy/sockets/{{ID}}.sock DB_PATH=data/{{ID}}/app.db \
   DEPLOYMENT_ID={{ID}} TEMPLATE=goa-api TEMPLATE_VERSION=1.0 \
   go run ./apps/{{PATH}}
 ```

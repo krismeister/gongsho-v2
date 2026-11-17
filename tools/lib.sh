@@ -15,7 +15,8 @@
 # Conventions: every verb starts with `set -eu`, sets VERB to its own name,
 # then sources this file. Logging goes through log() (stdout, `[verb] msg`)
 # and err()/die() (stderr). die() exits 1 (operational failure), usage()
-# exits 2 (usage error). GONGSHO_REPO overrides repo-root detection.
+# exits 2 (usage error). GONGSHO_REPO overrides repo-root detection;
+# GONGSHO_HOME overrides home-root detection (default: parent of the repo).
 #
 # POSIX sh throughout (no bashisms): this file must stay clean under `sh -n`
 # and runnable under dash.
@@ -70,6 +71,10 @@ case " ${GOFLAGS:-} " in
     *" -buildvcs=false "*) ;;
     *) GOFLAGS="${GOFLAGS:-}${GOFLAGS:+ }-buildvcs=false"; export GOFLAGS ;;
 esac
+# Workspace home (default: parent of the repo checkout; machine config
+# wins). apps/ and data/ resolve under this root; bin/, run/, proxy/,
+# templates/, and tools/ stay under REPO_ROOT.
+GONGSHO_HOME="${GONGSHO_HOME:-$(dirname -- "$REPO_ROOT")}"
 # Caddy origin (default port 8181; machine config wins).
 CADDY_ORIGIN="${GONGSHO_SCHEME:-http}://${GONGSHO_HOST:-localhost}:${GONGSHO_PORT:-8181}"
 # Supervisor timings in seconds (defaults 10/5).

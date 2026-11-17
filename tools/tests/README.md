@@ -2,8 +2,10 @@
 
 Committed, hermetic tests for `tools/lib.sh`. Every suite derives the repo
 root from its own location, builds all fixtures at runtime under a `mktemp -d`
-scratch dir (removed by `trap`), and works against fake repos only — the real
-`apps/`, `bin/`, `proxy/`, `run/`, and `tools/` trees are never written.
+scratch dir (removed by `trap`), and works against fake roots only — one
+scratch dir serves as both `GONGSHO_HOME` and `GONGSHO_REPO`, so the real
+home trees (`apps/`, `data/`) and repo trees (`bin/`, `proxy/`, `run/`,
+`tools/`) are never written.
 
 ## Run
 

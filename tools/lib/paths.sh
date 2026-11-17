@@ -1,9 +1,14 @@
 # lib/paths.sh — absolute path builders (pass validated IDs/paths/sessions).
 # Sourced via tools/lib.sh; never sourced or run alone.
+#
+# Two roots: apps/ and data/ live under GONGSHO_HOME (the parent of the
+# checkout); bin/, run/, proxy/, and templates/ stay under REPO_ROOT.
+# data/ is flat per deployment (data/<id>/), apps/ keeps the deep tree.
 
-app_dir() { printf '%s/apps/%s' "$REPO_ROOT" "$(id_to_path "$1")"; }          # <id>
+app_dir() { printf '%s/apps/%s' "$GONGSHO_HOME" "$(id_to_path "$1")"; }       # <id>
 bin_dir() { printf '%s/bin/%s' "$REPO_ROOT" "$(id_to_path "$1")"; }           # <id>
-data_dir() { printf '%s/data/%s' "$REPO_ROOT" "$(id_to_path "$1")"; }         # <id>
+data_root() { printf '%s/data' "$GONGSHO_HOME"; }
+data_dir() { printf '%s/data/%s' "$GONGSHO_HOME" "$1"; }                      # <id> (flat)
 proxy_file() { printf '%s/proxy/deployments/%s' "$REPO_ROOT" "$1"; }          # <id>
 socket_path() { printf '%s/proxy/sockets/%s.sock' "$REPO_ROOT" "$1"; }        # <id>
 pidfile_path() { printf '%s/proxy/sockets/%s.pid' "$REPO_ROOT" "$1"; }        # <id>

@@ -18,7 +18,8 @@ is app property after scaffold.
 ## Scaffold (Muse)
 
 `create <path> --template react-ui` copies `app/` to `apps/<path>/` and
-writes `.gongsho-deployment.yaml` beside it (harness-owned). Then:
+writes `.gongsho-deployment.yaml` beside it (harness-owned). Then, from
+`GONGSHO_HOME`:
 
 ```sh
 cd apps/<path>

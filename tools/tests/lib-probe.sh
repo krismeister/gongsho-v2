@@ -51,9 +51,11 @@ expect_fail "reject unknown template" validate_template_name nope-x
 
 # --- path builders ---
 R=$GONGSHO_REPO
-expect_eq "app_dir" "$(app_dir acme_shop_api-1)" "$R/apps/acme/shop/api-1"
+H=$GONGSHO_HOME
+expect_eq "app_dir" "$(app_dir acme_shop_api-1)" "$H/apps/acme/shop/api-1"
 expect_eq "bin_dir" "$(bin_dir acme_shop_api-1)" "$R/bin/acme/shop/api-1"
-expect_eq "data_dir" "$(data_dir acme_shop_api-1)" "$R/data/acme/shop/api-1"
+expect_eq "data_root" "$(data_root)" "$H/data"
+expect_eq "data_dir" "$(data_dir acme_shop_api-1)" "$H/data/acme_shop_api-1"
 expect_eq "proxy_file" "$(proxy_file acme_shop_api-1)" "$R/proxy/deployments/acme_shop_api-1"
 expect_eq "socket" "$(socket_path acme_shop_api-1)" "$R/proxy/sockets/acme_shop_api-1.sock"
 expect_eq "pidfile" "$(pidfile_path acme_shop_api-1)" "$R/proxy/sockets/acme_shop_api-1.pid"
@@ -61,7 +63,7 @@ expect_eq "dev_proxy" "$(dev_proxy_file a3f9 acme_shop_api-1)" "$R/proxy/dev.d/a
 expect_eq "dev_socket" "$(dev_socket_path a3f9 acme_shop_api-1)" "$R/proxy/sockets/acme_shop_api-1.dev-a3f9.sock"
 expect_eq "dev_bundle" "$(dev_bundle_dir a3f9 acme_shop_ui-1)" "$R/run/a3f9/bundles/acme/shop/ui-1"
 expect_eq "dev_db" "$(dev_db_path a3f9 acme_shop_api-1)" "$R/run/a3f9/data/acme/shop/api-1/app.db"
-expect_eq "pin_file" "$(pin_file acme_shop_api-1)" "$R/apps/acme/shop/api-1/.gongsho-deployment.yaml"
+expect_eq "pin_file" "$(pin_file acme_shop_api-1)" "$H/apps/acme/shop/api-1/.gongsho-deployment.yaml"
 
 # --- stanza rendering (stable) ---
 T=$(mktemp -d)

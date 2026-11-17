@@ -48,10 +48,10 @@ _tvars=$(tpl_get "$_template" '.vars | length')
 [ "$_tvars" = "1" ] || die "template '$_template' must declare exactly vars: [id]"
 [ "$(tpl_get "$_template" '.vars[0]')" = "id" ] || die "template '$_template' must declare exactly vars: [id]"
 
-_app="$REPO_ROOT/apps/$_path"
+_app=$(app_dir "$_id")
 if [ -e "$_app" ]; then die "apps/$_path already exists (remove it to re-create)"; fi
 if [ -e "$(proxy_file "$_id")" ]; then die "proxy file for '$_id' already exists (remove it to re-create)"; fi
-if [ -e "$(data_dir "$_id")" ]; then die "data/$_path already exists (remove it to re-create)"; fi
+if [ -e "$(data_dir "$_id")" ]; then die "data/$_id already exists (remove it to re-create)"; fi
 
 _src="$REPO_ROOT/templates/$_template/app"
 mkdir -p -- "$_app" || die "cannot create apps/$_path"
@@ -100,7 +100,7 @@ _pin_tmp=$(tmp_in_dir "$_app")
     printf 'templateVersion: "%s"\n' "$_ver"
     printf 'vars: {}\n'
     if [ "$_kind" = "api" ]; then
-        printf 'db:\n  type: SQLite\n  path: data/%s/app.db\n' "$_path"
+        printf 'db:\n  type: SQLite\n  path: %s/app.db\n' "$_id"
     fi
     printf 'created: "%s"\n' "$(utc_now)"
 } >"$_pin_tmp"

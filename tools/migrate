@@ -55,7 +55,7 @@ unset _f
 if [ -n "$_dev" ]; then
     _db=$(dev_db_path "$_dev" "$_id")
 else
-    _db="$REPO_ROOT/$(pin_db_path "$_id")"
+    _db="$(data_root)/$(pin_db_path "$_id")"
 fi
 ensure_dir "$(dirname -- "$_db")" || die "cannot create db dir"
 

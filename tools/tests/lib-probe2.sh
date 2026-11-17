@@ -19,7 +19,7 @@ templateVersion: "1.0"
 vars: {}
 db:
   type: SQLite
-  path: data/acme/shop/api-1/app.db
+  path: acme_shop_api-1/app.db
 created: "2026-11-11T12:00:00Z"
 EOF
 cat >"$F/apps/acme/shop/api-2/.gongsho-deployment.yaml" <<'EOF'
@@ -30,7 +30,7 @@ templateVersion: "1.0"
 vars: {}
 db:
   type: SQLite
-  path: data/acme/shop/api-2/app.db
+  path: acme_shop_api-2/app.db
 created: "2026-11-11T12:00:00Z"
 EOF
 cat >"$F/apps/acme/shop/ui-1/.gongsho-deployment.yaml" <<'EOF'
@@ -41,7 +41,7 @@ templateVersion: "1.0"
 vars: {}
 created: "2026-11-11T12:00:00Z"
 EOF
-export GONGSHO_REPO=$F
+export GONGSHO_REPO=$F GONGSHO_HOME=$F
 . "$F/tools/lib.sh"
 
 pass=0; fail=0
@@ -62,7 +62,7 @@ expect_fail() {
 # --- pins ---
 expect_ok "validate_pin api" validate_pin acme_shop_api-1
 expect_ok "validate_pin ui" validate_pin acme_shop_ui-1
-expect_eq "pin_db_path api" "$(pin_db_path acme_shop_api-1)" "data/acme/shop/api-1/app.db"
+expect_eq "pin_db_path api" "$(pin_db_path acme_shop_api-1)" "acme_shop_api-1/app.db"
 expect_eq "pin_db_path ui empty" "$(pin_db_path acme_shop_ui-1)" ""
 expect_eq "template_kind api" "$(template_kind goa-api)" "api"
 expect_eq "template_kind ui" "$(template_kind react-ui)" "ui"
@@ -111,9 +111,9 @@ printf 'LOG_LEVEL=debug\n' >"$F/envapp/.env"
 unset LOG_LEVEL
 source_app_env "$F/envapp"
 expect_eq "env keeps existing .env" "${LOG_LEVEL:-unset}" "debug"
-export_injected acme_shop_api-1 "$F/x.sock" data/acme/shop/api-1/app.db
+export_injected acme_shop_api-1 "$F/x.sock" "$F/data/acme_shop_api-1/app.db"
 expect_eq "injected socket" "$SOCKET_PATH" "$F/x.sock"
-expect_eq "injected db" "$DB_PATH" "data/acme/shop/api-1/app.db"
+expect_eq "injected db" "$DB_PATH" "$F/data/acme_shop_api-1/app.db"
 expect_eq "injected id" "$DEPLOYMENT_ID" "acme_shop_api-1"
 expect_eq "injected template" "$TEMPLATE" "goa-api"
 expect_eq "injected version" "$TEMPLATE_VERSION" "1.0"

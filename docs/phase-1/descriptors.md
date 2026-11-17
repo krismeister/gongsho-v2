@@ -28,7 +28,8 @@ owned:
 ## `.gongsho-deployment.yaml` — deployment pin
 
 Harness-owned; never hand-edited. Lives at
-`apps/<team>/<project>/<deployment>/.gongsho-deployment.yaml`. API example:
+`$GONGSHO_HOME/apps/<team>/<project>/<deployment>/.gongsho-deployment.yaml`.
+API example:
 
 ```yaml
 id: acme_shop_api-1
@@ -38,7 +39,7 @@ templateVersion: "1.0"
 vars: {}
 db:
   type: SQLite
-  path: data/acme/shop/api-1/app.db
+  path: acme_shop_api-1/app.db
 created: "2026-11-11T12:00:00Z"
 ```
 
@@ -48,8 +49,9 @@ UIs use the identical shape minus `db` (absent means none).
 - `template` plus exact `templateVersion`: the pin upgrades read later.
 - `vars`: snapshot of non-derivable scaffold inputs; `{}` in v1, kept so the
   first real var needs no schema migration (assumed).
-- `db` (APIs only): `type` plus repo-root-relative `path`, so every consumer
-  resolves it identically regardless of working directory.
+- `db` (APIs only): `type` plus data-root-relative `path` (relative to
+  `$GONGSHO_HOME/data/`, flat `<id>/app.db`), so every consumer resolves
+  it identically regardless of working directory.
 - `created`: quoted RFC3339 timestamp.
 
 Validation runs in `lib.sh` at create time: YAML parses, required fields

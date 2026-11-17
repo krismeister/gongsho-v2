@@ -28,7 +28,7 @@ validate_template_name "$_t"
 _id="tplcheck_tmp_$_t"
 _path=$(id_to_path "$_id")
 _kind=$(template_kind "$_t")
-_app="$REPO_ROOT/apps/$_path"
+_app=$(app_dir "$_id")
 
 if deployment_exists "$_id" || [ -e "$_app" ] || [ -e "$(proxy_file "$_id")" ] || [ -e "$(data_dir "$_id")" ]; then
     die "scratch residue for '$_id' exists (remove apps/$_path and proxy/data remnants, then retry)"
@@ -42,7 +42,7 @@ _cleanup() {
     trap - EXIT INT TERM
     if [ "$_kind" = "api" ]; then sh "$_d/stop" "$_id" || true; fi
     sh "$_d/retire" "$_id" || true
-    rm -rf -- "$_app" "$_app".retired-* "$REPO_ROOT/data/$_path" "$REPO_ROOT/data/$_path".retired-* "$(bin_dir "$_id")" || true
+    rm -rf -- "$_app" "$_app".retired-* "$(data_dir "$_id")" "$(data_dir "$_id")".retired-* "$(bin_dir "$_id")" || true
     rmdir -- "$_lock" 2>/dev/null || true
 }
 trap '_cleanup; exit 130' INT
@@ -82,7 +82,7 @@ if [ "$_kind" = "api" ]; then
     sh "$_d/stop" "$_id" || die "stop step failed"
 fi
 sh "$_d/retire" "$_id" || die "retire step failed"
-rm -rf -- "$_app".retired-* "$REPO_ROOT/data/$_path".retired-* || die "cannot remove retire archives"
+rm -rf -- "$_app".retired-* "$(data_dir "$_id")".retired-* || die "cannot remove retire archives"
 rmdir -- "$_lock" || die "cannot release lock"
 trap - EXIT INT TERM
 log "template '$_t' passed"

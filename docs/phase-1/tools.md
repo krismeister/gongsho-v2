@@ -46,11 +46,14 @@ alongside Go, Node, Caddy).
 
 Thin wrapper: globals, frozen constants, and `VERB` default, then sources
 every module in `lib/`. Verbs source `tools/lib.sh` only, never modules
-directly. One concern per module file:
+directly. Two roots: `REPO_ROOT` (the checkout; `GONGSHO_REPO` overrides
+detection) for `bin/`, `run/`, `proxy/`, `templates/`, `tools/`, and
+`GONGSHO_HOME` (default: parent of the checkout; machine config wins) for
+`apps/` and `data/`. One concern per module file:
 
 - `log.sh` — `log`/`err`/`die`/`usage`, exit 1/2 discipline.
 - `ids.sh` — ID/path/session validation and ID↔path derivation.
-- `paths.sh` — tree/socket/pidfile/proxy path builders.
+- `paths.sh` — tree/socket/pidfile/proxy/data-root path builders.
 - `pin.sh` — YAML reads via mikefarah `yq` (flavor-guarded), pin
   validation, template kind.
 - `io.sh` — dir ensure, atomic temp-then-rename writes, time, session
@@ -69,9 +72,10 @@ directly. One concern per module file:
 `tools/tests/run.sh` runs every suite with a combined pass/fail
 summary and exits nonzero on any failure. Suites derive the repo root
 from their own location, build all fixtures at runtime under `mktemp`
-scratch (trap-cleaned), and work against fake repos only — the real
-`apps/`, `bin/`, `proxy/`, `run/`, and `tools/` trees are never
-written. Static fixtures live under `tools/tests/fixtures/`. Every
-verb carries positive plus key failure cases here; `lib.sh` changes
-must keep the suite green unmodified unless the change itself is the
-contract.
+scratch (trap-cleaned), and work against fake roots only — one scratch
+dir serves as both `GONGSHO_HOME` and `GONGSHO_REPO`, so the real home
+trees (`apps/`, `data/`) and repo trees (`bin/`, `proxy/`, `run/`,
+`tools/`) are never written. Static fixtures live under
+`tools/tests/fixtures/`. Every verb carries positive plus key failure
+cases here; `lib.sh` changes must keep the suite green unmodified
+unless the change itself is the contract.

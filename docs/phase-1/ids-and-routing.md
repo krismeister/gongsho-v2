@@ -6,9 +6,13 @@
 - Charset: segments allow lowercase, digits, and hyphens only, never
   underscores, so the join splits unambiguously. Team `dev` is reserved and
   rejected (it protects the `/dev/` route prefix).
+- Roots: `apps/` and `data/` live under `GONGSHO_HOME` (default: parent
+  of the checkout); `bin/`, `run/`, `proxy/`, and `templates/` stay under
+  the repo checkout.
 - Derivations are pure functions implemented once in `lib.sh`:
   - ID ↔ path: join/split on `_` (exactly three segments).
-  - Trees: `apps/<path>/`, `bin/<path>/`.
+  - Trees: `apps/<path>/` (deep, home), `data/<id>/` (flat, home),
+    `bin/<path>/` (deep, repo).
   - Proxy file: `proxy/deployments/<id>`; dev file:
     `proxy/dev.d/<session>-<id>`.
   - Socket: `proxy/sockets/<id>.sock`; dev socket:

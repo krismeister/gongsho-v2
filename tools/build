@@ -61,7 +61,7 @@ else
         fi
         unset _api _pt _cur
     done
-    [ -x "$_app/node_modules/.bin/vite" ] || die "node_modules missing for '$_id' (run: cd apps/$_path && npm install)"
+    [ -x "$_app/node_modules/.bin/vite" ] || die "node_modules missing for '$_id' (run: cd $_app && npm install)"
     need_cmd npm "Node.js toolchain (documented prerequisite)"
     ( cd "$_app" && npm run build -- --base="/$_path/" ) || die "npm build failed (see above)"
     [ -f "$_app/dist/index.html" ] || die "build produced no dist/index.html"

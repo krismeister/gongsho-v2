@@ -13,9 +13,9 @@ cp $R/templates/goa-api/.gongsho-tpl.yaml $F/templates/goa-api/
 cp $R/templates/react-ui/.gongsho-tpl.yaml $F/templates/react-ui/
 cp $R/templates/goa-api/config/caddy/stanza $F/templates/goa-api/config/caddy/
 cp $R/templates/react-ui/config/caddy/stanza $F/templates/react-ui/config/caddy/
-printf 'id: acme_shop_api-1\npath: acme/shop/api-1\ntemplate: goa-api\ntemplateVersion: "1.0"\nvars: {}\ndb:\n  type: SQLite\n  path: data/acme/shop/api-1/app.db\ncreated: "2026-11-11T12:00:00Z"\n' > $F/apps/acme/shop/api-1/.gongsho-deployment.yaml
+printf 'id: acme_shop_api-1\npath: acme/shop/api-1\ntemplate: goa-api\ntemplateVersion: "1.0"\nvars: {}\ndb:\n  type: SQLite\n  path: acme_shop_api-1/app.db\ncreated: "2026-11-11T12:00:00Z"\n' > $F/apps/acme/shop/api-1/.gongsho-deployment.yaml
 printf 'id: acme_shop_ui-1\npath: acme/shop/ui-1\ntemplate: react-ui\ntemplateVersion: "1.0"\nvars: {}\ncreated: "2026-11-11T12:00:00Z"\n' > $F/apps/acme/shop/ui-1/.gongsho-deployment.yaml
-export GONGSHO_REPO=$F
+export GONGSHO_REPO=$F GONGSHO_HOME=$F
 . "$F/tools/lib.sh"
 
 pass=0; fail=0

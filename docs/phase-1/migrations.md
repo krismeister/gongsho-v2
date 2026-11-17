@@ -1,7 +1,7 @@
 # Migrations and databases
 
 - One SQLite database per API, path from the deployment pin (`db.path`,
-  repo-root-relative). UIs have no database.
+  data-root-relative: `$GONGSHO_HOME/data/<id>/app.db`). UIs have no database.
 - Tool: golang-migrate, invoked as an explicit harness step (`migrate`
   verb, version pinned in `tools/`), never on boot. Migration files live
   app-owned under `apps/<id>/migrations/` as up/down pairs; constants ride

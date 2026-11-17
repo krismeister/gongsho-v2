@@ -4,7 +4,7 @@
 set -eu
 TEST_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 R=$(CDPATH= cd -- "$TEST_DIR/../.." && pwd)
-unset GONGSHO_SCHEME GONGSHO_HOST GONGSHO_PORT GONGSHO_START_HEALTH_TIMEOUT GONGSHO_STOP_GRACE GONGSHO_MIGRATE_VERSION
+unset GONGSHO_HOME GONGSHO_SCHEME GONGSHO_HOST GONGSHO_PORT GONGSHO_START_HEALTH_TIMEOUT GONGSHO_STOP_GRACE GONGSHO_MIGRATE_VERSION
 F=$(mktemp -d)
 trap 'rm -rf "$F"' EXIT
 mkdir -p "$F/tools" "$F/templates/goa-api" "$F/templates/react-ui" \
@@ -20,7 +20,7 @@ templateVersion: "1.0"
 vars: {}
 db:
   type: SQLite
-  path: data/acme/shop/api-1/app.db
+  path: acme_shop_api-1/app.db
 created: "2026-11-11T12:00:00Z"
 EOF
 cat >"$F/apps/acme/shop/ui-1/.gongsho-deployment.yaml" <<'EOF'
@@ -31,7 +31,7 @@ templateVersion: "1.0"
 vars: {}
 created: "2026-11-11T12:00:00Z"
 EOF
-export GONGSHO_REPO=$F
+export GONGSHO_REPO=$F GONGSHO_HOME=$F
 
 pass=0; fail=0
 ok() { pass=$((pass+1)); printf 'ok: %s\n' "$1"; }

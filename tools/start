@@ -31,7 +31,7 @@ _kind=$(template_kind "$_t")
 [ "$_kind" = "api" ] || die "UI deployments have no process to start ('$_id' is static)"
 _bin="$(bin_dir "$_id")/api"
 [ -x "$_bin" ] || die "no binary for '$_id' (run: build $_id)"
-_db="$REPO_ROOT/$(pin_db_path "$_id")"
+_db="$(data_root)/$(pin_db_path "$_id")"
 [ -f "$_db" ] || die "no database for '$_id' (run: migrate $_id)"
 _sock=$(socket_path "$_id")
 _pidf=$(pidfile_path "$_id")

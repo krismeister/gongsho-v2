@@ -42,11 +42,12 @@ after scaffold changes nothing). Resolved at authoring (2026-11-11):
 
 ## Scaffold (manual)
 
-For ID `acme_shop_api-1` (`acme/shop/api-1`), from the repo root:
+For ID `acme_shop_api-1` (`acme/shop/api-1`), from `GONGSHO_HOME` (the
+parent of the `gongsho_v2` checkout):
 
 ```sh
 mkdir -p apps/acme/shop/api-1
-cp -r templates/goa-api/app/. apps/acme/shop/api-1/
+cp -r gongsho_v2/templates/goa-api/app/. apps/acme/shop/api-1/
 cd apps/acme/shop/api-1
 grep -rl 'gongsho/template/goa-api' . | xargs sed -i 's|gongsho/template/goa-api|gongsho/acme/shop/api-1|g'
 sed -i 's|{{ID}}|acme_shop_api-1|g; s|{{PATH}}|acme/shop/api-1|g' README.md

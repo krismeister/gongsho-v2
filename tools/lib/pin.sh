@@ -11,7 +11,7 @@ need_yq() { # refuse to run YAML reads under any yq but mikefarah's
         die "unsupported yq flavor (have: ${_L_yv:-unknown}; want mikefarah yq - install it with: sudo pacman -S go-yq)"
 }
 
-pin_file() { printf '%s/apps/%s/.gongsho-deployment.yaml' "$REPO_ROOT" "$(id_to_path "$1")"; } # <id>
+pin_file() { printf '%s/.gongsho-deployment.yaml' "$(app_dir "$1")"; } # <id>
 deployment_exists() { [ -f "$(pin_file "$1")" ]; }
 
 pin_get() { # <id> <yq-expr> — raw value from the deployment pin

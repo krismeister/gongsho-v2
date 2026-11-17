@@ -98,10 +98,10 @@ runtime layout), `e2e-standard.md` (env contract plus runners),
   - `config/` — template-owned material: `caddy/stanza`, defaults, health spec
   - `app/` — scaffold source copied into deployments (only part Muse edits downstream)
   - `README.md` — written so Muse scaffolds, runs, and wires one unaided
-- `apps/<team>/<project>/<deployment>/` — scaffolded source, flat once
-  scaffolded (assumed): code, app config (Muse-editable, assumed),
-  `.gongsho-deployment.yaml` pin (harness-owned), `migrations/` (APIs),
-  `spec/` (UI snapshots), `e2e/` specs
+- `$GONGSHO_HOME/apps/<team>/<project>/<deployment>/` — scaffolded source
+  (outside the repo), flat once scaffolded (assumed): code, app config
+  (Muse-editable, assumed), `.gongsho-deployment.yaml` pin
+  (harness-owned), `migrations/` (APIs), `spec/` (UI snapshots), `e2e/` specs
 - `bin/<team>/<project>/<deployment>/` — gitignored build output: API binary,
   UI bundle (what Caddy serves)
 - `proxy/`
@@ -146,7 +146,7 @@ runtime layout), `e2e-standard.md` (env contract plus runners),
 - `.gongsho-deployment.yaml` (in each deployment, harness-owned):
   `id` (`acme_shop_api-1`), `path` (`acme/shop/api-1`), `template`,
   `templateVersion` (quoted), `vars` (empty map in v1, kept for forward
-  compat — assumed), `db` (APIs only: `type: SQLite`, repo-root-relative
+  compat — assumed), `db` (APIs only: `type: SQLite`, data-root-relative
   `path`), `created` (quoted timestamp). Scaffold validates id/path agreement.
 - ID rules: segments allow lowercase, digits, hyphens only, never underscores,
   so the underscore join splits unambiguously; no team named `dev` (reserves

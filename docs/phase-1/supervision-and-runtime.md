@@ -19,6 +19,9 @@
 
 ## Runtime layout
 
+- Roots: sockets, pidfiles, `bin/`, and `run/` resolve under the repo
+  checkout; stable databases resolve under `$GONGSHO_HOME/data/` (flat
+  `<id>/app.db`, via the data-root-relative pin path).
 - Sockets and pidfiles: `proxy/sockets/<id>.sock`, `<id>.pid`; dev copies
   take `.dev-<session>` infixes. Directory is gitignored.
 - `bin/` promotion is atomic: build into `<path>.new`, rename over the old

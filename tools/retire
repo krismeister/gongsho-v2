@@ -27,7 +27,6 @@ validate_id "$_id"
 validate_pin "$_id"
 _t=$(pin_template "$_id")
 _kind=$(template_kind "$_t")
-_path=$(id_to_path "$_id")
 
 if [ "$_kind" = "api" ]; then
     sh "$_d/stop" "$_id" || die "stop step failed"
@@ -45,12 +44,14 @@ fi
 caddy_reload
 
 _ts=$(ts_short)
-_apparc="$REPO_ROOT/apps/$_path.retired-$_ts"
-mv -- "$REPO_ROOT/apps/$_path" "$_apparc" || die "cannot archive app dir"
+_appdir=$(app_dir "$_id")
+_apparc="$_appdir.retired-$_ts"
+mv -- "$_appdir" "$_apparc" || die "cannot archive app dir"
 log "archived app to $_apparc"
-if [ -d "$REPO_ROOT/data/$_path" ]; then
-    _dataarc="$REPO_ROOT/data/$_path.retired-$_ts"
-    mv -- "$REPO_ROOT/data/$_path" "$_dataarc" || die "cannot archive data dir"
+_datadir=$(data_dir "$_id")
+if [ -d "$_datadir" ]; then
+    _dataarc="$_datadir.retired-$_ts"
+    mv -- "$_datadir" "$_dataarc" || die "cannot archive data dir"
     log "archived data to $_dataarc"
 else
     log "no data dir to archive"

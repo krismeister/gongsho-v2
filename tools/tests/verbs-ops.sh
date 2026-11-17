@@ -5,7 +5,7 @@
 set -eu
 TEST_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 R=$(CDPATH= cd -- "$TEST_DIR/../.." && pwd)
-unset GONGSHO_SCHEME GONGSHO_HOST GONGSHO_PORT GONGSHO_START_HEALTH_TIMEOUT GONGSHO_STOP_GRACE GONGSHO_MIGRATE_VERSION
+unset GONGSHO_HOME GONGSHO_SCHEME GONGSHO_HOST GONGSHO_PORT GONGSHO_START_HEALTH_TIMEOUT GONGSHO_STOP_GRACE GONGSHO_MIGRATE_VERSION
 F=$(mktemp -d)
 _killall() {
     for _pf in "$F"/proxy/sockets/*.pid; do
@@ -26,7 +26,7 @@ templateVersion: "1.0"
 vars: {}
 db:
   type: SQLite
-  path: data/acme/shop/api-1/app.db
+  path: acme_shop_api-1/app.db
 created: "2026-11-11T12:00:00Z"
 EOF
 cat >"$F/apps/acme/shop/ui-1/.gongsho-deployment.yaml" <<'EOF'
@@ -37,7 +37,7 @@ templateVersion: "1.0"
 vars: {}
 created: "2026-11-11T12:00:00Z"
 EOF
-export GONGSHO_REPO=$F
+export GONGSHO_REPO=$F GONGSHO_HOME=$F
 export PATH="$R/tools/tests/fixtures/bin:$PATH"
 export CADDY_STUB_LOG="$F/caddy.log"
 
@@ -202,7 +202,7 @@ fi
 
 # --- start/status/check/restart/stop API via a python fake binary ---
 if command -v python3 >/dev/null 2>&1; then
-    mkdir -p "$F/bin/acme/shop/api-1" "$F/data/acme/shop/api-1"
+    mkdir -p "$F/bin/acme/shop/api-1" "$F/data/acme_shop_api-1"
     cat >"$F/bin/acme/shop/api-1/api" <<'PYEOF'
 #!/usr/bin/env python3
 import os, sys
@@ -240,7 +240,7 @@ if os.path.exists(p):
 UnixStreamServer(p, H).serve_forever()
 PYEOF
     chmod +x "$F/bin/acme/shop/api-1/api"
-    : >"$F/data/acme/shop/api-1/app.db"
+    : >"$F/data/acme_shop_api-1/app.db"
     cp "$R/templates/goa-api/app/.example.env" "$F/apps/acme/shop/api-1/.example.env"
     printf '{"openapi":"3.0.0"}' >"$F/apps/acme/shop/api-1/gen/openapi.json"
     expect_rc_grep "start api ok" 0 "healthy" start acme_shop_api-1
@@ -311,14 +311,14 @@ PYEOF
     }
     countbak() {
         _n=0
-        for _b in "$F"/data/acme/shop/api-1/app.db.bak-*; do
+        for _b in "$F"/data/acme_shop_api-1/app.db.bak-*; do
             [ -e "$_b" ] || break
             _n=$((_n + 1))
         done
         printf '%s' "$_n"
         unset _b
     }
-    rm -f "$F/data/acme/shop/api-1/app.db" "$F/data/acme/shop/api-1/app.db.bak-"*
+    rm -f "$F/data/acme_shop_api-1/app.db" "$F/data/acme_shop_api-1/app.db.bak-"*
     printf 'CREATE TABLE t1 (k TEXT);\n' >"$F/apps/acme/shop/api-1/migrations/0001_init.up.sql"
     _mig acme_shop_api-1
     if [ "$_rc" = "0" ] && printf '%s' "$_out" | grep -q -F "migrated to version 1" \
@@ -348,7 +348,7 @@ PYEOF
     fi
     printf '%s\n' '-- STUB-FAIL' 'CREATE TABLE t6 (k TEXT);' >"$F/apps/acme/shop/api-1/migrations/0006_x.up.sql"
     _mig acme_shop_api-1
-    _dbv=$(python3 -c 'import sqlite3,sys; print(sqlite3.connect(sys.argv[1]).execute("select version from schema_migrations order by version desc limit 1").fetchone()[0])' "$F/data/acme/shop/api-1/app.db")
+    _dbv=$(python3 -c 'import sqlite3,sys; print(sqlite3.connect(sys.argv[1]).execute("select version from schema_migrations order by version desc limit 1").fetchone()[0])' "$F/data/acme_shop_api-1/app.db")
     if [ "$_rc" = "1" ] && printf '%s' "$_out" | grep -q -F "restored backup" \
         && [ "$_dbv" = "5" ]; then
         ok "migrate failure restores"
@@ -374,7 +374,7 @@ mkdir -p "$F/proxy/deployments"
 printf 'stub stanza\n' >"$F/proxy/deployments/acme_shop_api-1"
 expect_rc "retire api ok" 0 retire acme_shop_api-1
 _arc2=$(echo "$F"/apps/acme/shop/api-1.retired-*)
-_arc3=$(echo "$F"/data/acme/shop/api-1.retired-*)
+_arc3=$(echo "$F"/data/acme_shop_api-1.retired-*)
 if [ ! -e "$F/apps/acme/shop/api-1" ] && [ -e "$_arc2" ] && [ -e "$_arc3" ] \
     && [ ! -e "$F/proxy/deployments/acme_shop_api-1" ] \
     && [ ! -e "$F/bin/acme/shop/api-1" ]; then
