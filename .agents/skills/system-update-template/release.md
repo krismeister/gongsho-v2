@@ -9,7 +9,9 @@ template and the new version.
    and record the current quoted version.
 2. Diff the template against the current version. Describe every
    change since that version in plain words: what changed and why.
-   This description is the changelog; it ships with the release.
+   This description is the changelog; it goes into a new entry in
+   `templates/<name>/CHANGES.md` (create the file if this is the
+   first entry).
 3. Classify each change:
    - owned-only: touches only `owned` files, apps pick it up by
      regeneration, no app edits needed;
@@ -19,14 +21,23 @@ template and the new version.
 4. Check the bump: any app-code-required change means the new
    version must be major. A major bump with no app-code-required
    change is suspect — flag it and wait.
-5. Write the migration note. One note per release, kept with the
-   template, covering:
+5. Write the migration note inline in the same `CHANGES.md`
+   entry, covering:
    - the from → to versions;
    - per-deployment steps in order: what regenerates, what to
      hand-edit, what verifies success;
    - the recipe for every app-code-required change: an exact
      before/after snippet or a script, plus how to find each
      occurrence.
+
+   Entry shape:
+
+   ## <to-version> — <date> (from <from-version>)
+   ### Changes
+   - [<owned-only|app-code-required|no-action>] <what and why>
+   ### Migrate from <from-version>
+   1. <step> ...
+   Recipe: <before/after or script, plus matcher>
 6. If a changed behavior is part of the template's contract
    (scaffold shape, manifest fields, health or spec guarantees),
    update the template's own README or contract text in the same

@@ -21,12 +21,15 @@ These rules are complete for this skill. Nothing outside it applies.
   existing apps must change to match; a minor bump means they do
   not. Deployments pin the exact version in
   `.gongsho-deployment.yaml` as `templateVersion` (quoted).
+- Each template keeps `CHANGES.md` beside its manifest: one entry
+  per version carrying the changelog and the migration note
+  inline together.
 - Owned versus app property: only files listed in the template's
   `owned` may be regenerated across apps. Everything else is app
   property after scaffold — never overwrite it with template
   copies; change it only through a release recipe.
-- A release is incomplete without a migration note. A migration
-  without its release note stops before touching anything.
+- A release is incomplete without its `CHANGES.md` entry. A
+  migration without that entry stops before touching anything.
 
 ## Roles
 

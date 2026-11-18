@@ -8,9 +8,10 @@ this skill and runs it scoped to its own deployment.
 
 1. Read the deployment pin `.gongsho-deployment.yaml`: record its
    `template` and `templateVersion`. That is the from-version.
-2. Read the target release's migration note and changelog. No
-   migration note means the release is incomplete: stop and report
-   without touching anything.
+2. Read the target release's entry in
+   `templates/<name>/CHANGES.md`: its changelog plus the inline
+   migration note. No entry means the release is incomplete: stop
+   and report without touching anything.
 3. Confirm the pin matches the tree: the deployment id, template
    name, and scaffold shape agree. On drift, stop and report.
 4. Regenerate every `owned` file through the harness. Never copy
@@ -30,8 +31,8 @@ this skill and runs it scoped to its own deployment.
 
 ## Stop
 
-Stop and report, leaving the tree as is, on: a missing migration
-note, pin/tree drift, a recipe that matches zero or multiple
+Stop and report, leaving the tree as is, on: a missing `CHANGES.md`
+entry, pin/tree drift, a recipe that matches zero or multiple
 unexpected places, any failing check, or any instruction that
 would overwrite app property outside a recipe. Resume only when
 told to.
