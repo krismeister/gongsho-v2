@@ -106,8 +106,9 @@ runtime layout), `e2e-standard.md` (env contract plus runners),
   UI bundle (what Caddy serves)
 - `proxy/`
   - `Caddyfile` — one site plus `import deployments/*` and `import dev.d/*`
-  - `deployments/` — stable stanzas, one file per deployment, committed in v1
-    (assumed)
+  - `deployments/` — stable stanzas, one file per deployment, derived and
+    gitignored (assumed): verbs re-render from the owning template plus pin
+    before every reload, so the files are never committed or hand-edited
   - `dev.d/` — ephemeral `/dev/<session>/` stanzas, gitignored
   - `sockets/` — runtime unix sockets plus pidfiles, gitignored
 - `run/` — per-session scratch (dev DBs, dev bundles), gitignored (assumed location)
@@ -279,7 +280,7 @@ Port `:8181`; strip API prefixes; constant Host; UI fallback plus cache split;
 default Caddy logging; `.sh` harness; `create` name; `retire` in v1;
 `template-new` skipped; bumps later; `dev-up` routes-only with e2e building
 bundles; empty `vars` kept; deployment dirs flat once scaffolded; app config
-Muse-editable; proxy files committed; scratch under `run/`; HTTP/JSON-only
+Muse-editable; proxy files derived (gitignored); scratch under `run/`; HTTP/JSON-only
 transports; pins plus driver plus socket verification at implementation;
 compiler-plus-regen strictness only; TanStack later; constants via first
 migrations; prune-to-three backups; migrate pin in `tools/`; go module path convention;

@@ -19,15 +19,17 @@ alongside Go, Node, Caddy).
   write is normally a no-op; unexpected diffs surface in git status. Never
   touches proxy, DBs, or processes. `--if-stale` exits 0 without building
   when the output is newer than every source.
-- `deploy <id>` — build, ensure proxy file, reload, migrate plus restart
+- `deploy <id>` — build, ensure proxy file (re-render from template
+  plus pin), reload, migrate plus restart
   (APIs) or bundle swap (UIs), verify through Caddy. Restores DB backup and
   aborts loudly on failure.
 - `retire <id>` — stop, remove proxy file plus reload, archive the app dir
   plus its `data/` dir (in v1, assumed; archive alongside, never auto-delete).
 - `start|stop|restart|status <id>` — pidfile supervision; status covers
   process state plus endpoint health.
-- `dev-up <session> <id>...` — dev copies for a session: sockets, scratch
-  DBs, `/dev/` routes (routes only; e2e builds its bundle first — assumed).
+- `dev-up <session> <id>...` — dev copies for a session: ensure stable
+  stanzas, then sockets, scratch DBs, `/dev/` routes (routes only; e2e
+  builds its bundle first — assumed).
 - `dev-down <session>` — kill copies, remove routes plus reload, delete
   scratch. Manual cleanup for orphans; no sweep verb in v1.
 - `check <id>` — direct-socket API checks plus UI bundle checks. No browser.
@@ -39,7 +41,8 @@ alongside Go, Node, Caddy).
 - `cache-warm` — download template Go modules, compile the pinned
   migrate binary into `tools/bin/` (plus version sidecar), compile the
   pinned goa CLI for build-cache warmth. Idempotent.
-- `startup` — ensure Caddy, run `cache-warm`, boot every deployment
+- `startup` — ensure Caddy, run `cache-warm`, re-render all proxy
+  stanzas plus one reload, boot every deployment
   (APIs first): build when stale, start APIs unless running, verify
   all through Caddy. Idempotent; collects per-deployment failures.
 
@@ -71,8 +74,9 @@ detection) for `bin/`, `run/`, `proxy/`, `templates/`, `tools/`, and
 - `health.sh` — direct-socket and TCP getters, JSON comparison,
   polled health wait.
 - `proc.sh` — pidfile reads, liveness, supervised stop.
-- `render.sh` — stable stanza render, asserted dev-stanza derivation,
-  `gen-config.json` writer.
+- `render.sh` — stable stanza render plus `ensure_proxy_file`
+  (re-render from template plus pin), asserted dev-stanza
+  derivation, `gen-config.json` writer.
 - `env.sh` — `.env` ensure plus source, pin-derived injected exports.
 
 ## `tests/` (committed, hermetic)

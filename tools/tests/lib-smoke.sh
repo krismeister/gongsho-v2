@@ -279,26 +279,21 @@ render_dev_stanza a3f9 acme_shop_ui-1 "$FR/proxy/dev.d/a3f9-acme_shop_ui-1"
     printf '}\n'
 } > $SCRATCH/smoke/devui.want
 cmp $SCRATCH/smoke/devui.want "$FR/proxy/dev.d/a3f9-acme_shop_ui-1" && ok dev-ui-bytes || bad dev-ui-bytes
-# dev derivation asserts: tampered stable files and missing file all fail loud
-cp "$FR/proxy/deployments/acme_shop_api-1" $SCRATCH/smoke/stable-api.bak
+# dev derivation heals: tampered or missing stable files re-render, then derive
 sed -i 's|handle_path|handle|' "$FR/proxy/deployments/acme_shop_api-1"
 ( render_dev_stanza a3f9 acme_shop_api-1 $SCRATCH/smoke/dev-t1 ) >/dev/null 2>&1
-[ $? -eq 1 ] && ok dev-tamper-prefix || bad dev-tamper-prefix
-cp $SCRATCH/smoke/stable-api.bak "$FR/proxy/deployments/acme_shop_api-1"
+[ $? -eq 0 ] && grep -q -F 'handle_path /acme/shop/api-1/*' "$FR/proxy/deployments/acme_shop_api-1" && ok dev-heal-prefix || bad dev-heal-prefix
 sed -i 's|acme_shop_api-1\.sock|other_api-9.sock|' "$FR/proxy/deployments/acme_shop_api-1"
 ( render_dev_stanza a3f9 acme_shop_api-1 $SCRATCH/smoke/dev-t2 ) >/dev/null 2>&1
-[ $? -eq 1 ] && ok dev-tamper-sock || bad dev-tamper-sock
-cp $SCRATCH/smoke/stable-api.bak "$FR/proxy/deployments/acme_shop_api-1"
-cp "$FR/proxy/deployments/acme_shop_ui-1" $SCRATCH/smoke/stable-ui.bak
+[ $? -eq 0 ] && grep -q -F 'acme_shop_api-1.sock' "$FR/proxy/deployments/acme_shop_api-1" && ok dev-heal-sock || bad dev-heal-sock
 sed -i '/^    root \*/d' "$FR/proxy/deployments/acme_shop_ui-1"
 ( render_dev_stanza a3f9 acme_shop_ui-1 $SCRATCH/smoke/dev-t3 ) >/dev/null 2>&1
-[ $? -eq 1 ] && ok dev-tamper-root || bad dev-tamper-root
-cp $SCRATCH/smoke/stable-ui.bak "$FR/proxy/deployments/acme_shop_ui-1"
+[ $? -eq 0 ] && grep -q -F "$FR/bin/acme/shop/ui-1" "$FR/proxy/deployments/acme_shop_ui-1" && ok dev-heal-root || bad dev-heal-root
 ( render_dev_stanza a3f9 acme_shop_api-2 $SCRATCH/smoke/dev-t4 ) >/dev/null 2>&1
-[ $? -eq 1 ] && ok dev-missing-stable || bad dev-missing-stable
+[ $? -eq 0 ] && [ -f "$FR/proxy/deployments/acme_shop_api-2" ] && ok dev-renders-missing || bad dev-renders-missing
 cp "$FR/proxy/deployments/acme_shop_ui-1" "$FR/proxy/deployments/acme_shop_api-2"
 ( render_dev_stanza a3f9 acme_shop_api-2 $SCRATCH/smoke/dev-t5 ) >/dev/null 2>&1
-[ $? -eq 1 ] && ok dev-wrong-shape || bad dev-wrong-shape
+[ $? -eq 0 ] && grep -q -F 'handle_path /acme/shop/api-2/*' "$FR/proxy/deployments/acme_shop_api-2" && ok dev-heal-shape || bad dev-heal-shape
 rm -f "$FR/proxy/deployments/acme_shop_api-2"
 
 # render refuses an unknown placeholder dialect in a directive line

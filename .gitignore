@@ -5,6 +5,7 @@ data/
 tools/bin/
 proxy/sockets/
 proxy/dev.d/
+proxy/deployments/
 run/
 # UI dependencies.
 node_modules/

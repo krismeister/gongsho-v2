@@ -23,7 +23,7 @@ $GONGSHO_HOME/
 │   │   folder per deployment via root + try_files + cache split)
 │   ├── proxy/
 │   │   ├── Caddyfile (c)
-│   │   ├── deployments/ (c in v1)
+│   │   ├── deployments/ (g) * (derived: re-rendered from template plus pin)
 │   │   ├── dev.d/ (g)
 │   │   └── sockets/ (g) (sockets plus pidfiles)
 │   ├── run/ (g) (per-session scratch)
@@ -35,10 +35,10 @@ $GONGSHO_HOME/
 
 Rules:
 
-- Source committed: `templates/`, `tools/`, `proxy/deployments/`, `docs/`.
+- Source committed: `templates/`, `tools/`, `docs/`.
   `apps/` lives outside the repo and is never committed from here.
 - Runtime and disposable ignored: `bin/`, `proxy/sockets/`,
-  `proxy/dev.d/`, `run/`. Database files live under `$GONGSHO_HOME/data/`,
+  `proxy/dev.d/`, `proxy/deployments/`, `run/`. Database files live under `$GONGSHO_HOME/data/`,
   created by create and deploy via migrate.
 - Generated-but-committed (reviewable diffs; regen gates keep them honest):
   `gen/` inside APIs, `src/client` inside UIs.

@@ -12,8 +12,9 @@ esac
 print_help() { cat <<'EOF'
 usage: tools/startup
 
-Ensure Caddy is running, ensure caches are warm (via cache-warm), then
-boot every deployment: APIs before UIs, each built when stale (npm
+Ensure Caddy is running, ensure caches are warm (via cache-warm),
+re-render every deployment's proxy stanza plus one reload, then boot
+every deployment: APIs before UIs, each built when stale (npm
 install first for UIs missing node_modules), each API started unless
 already running, each verified through Caddy. Idempotent: safe to run
 anytime. Skips nothing silently; per-deployment failures are collected
@@ -76,6 +77,24 @@ if [ -z "$_apis$_uis" ] && [ -z "$_failed" ]; then
     exit 0
 fi
 
+# --- proxy stanzas: re-render every deployment (derived, gitignored), then
+# one reload; ensure failures skip that deployment and collect below ---
+_boot_apis=""
+_boot_uis=""
+for _eid in $_apis $_uis; do
+    if ( ensure_proxy_file "$_eid" ); then
+        case " $_apis " in *" $_eid "*) _boot_apis="$_boot_apis $_eid" ;; *) _boot_uis="$_boot_uis $_eid" ;; esac
+    else
+        _failed="$_failed $_eid"
+    fi
+done
+unset _eid
+if [ -n "$_boot_apis$_boot_uis" ]; then
+    caddy_reload
+else
+    log "no proxy files ensured; skipping reload"
+fi
+
 _boot_one() { # <id> — build-if-stale, start-if-down (APIs), verify via Caddy
     _b_id=$1
     _b_t=$(pin_template "$_b_id")
@@ -121,12 +140,12 @@ _boot_one() { # <id> — build-if-stale, start-if-down (APIs), verify via Caddy
     fi
 }
 
-for _bid in $_apis $_uis; do
+for _bid in $_boot_apis $_boot_uis; do
     if ! _boot_one "$_bid"; then
         _failed="$_failed $_bid"
     fi
 done
-unset _bid
+unset _bid _boot_apis _boot_uis
 if [ -n "$_failed" ]; then
     die "startup incomplete (failed:${_failed})"
 fi

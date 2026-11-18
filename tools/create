@@ -111,7 +111,7 @@ if [ "$_kind" = "api" ]; then
     sh "$_d/migrate" "$_id" || die "migrate step failed"
 fi
 
-render_stanza "$_template" "$_id" "$_path" "$(proxy_file "$_id")"
+ensure_proxy_file "$_id"
 log "rendered proxy file"
 caddy_reload
 log "created $_id ($_template $_ver) at apps/$_path"

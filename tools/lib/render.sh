@@ -5,9 +5,13 @@
 # react-ui: ${X}); render the superset so both dialects resolve, then refuse
 # to emit a file with leftovers (an undeclared template input).
 #
-# Stable stanzas render once at create time. dev-up never re-renders from
-# the template: it derives the dev stanza from the already-rendered stable
-# proxy file via render_dev_stanza below.
+# Stable stanzas are derived state (gitignored): every verb re-renders from
+# the deployment's template plus pin before reloading Caddy, so a missing
+# or stale file heals instead of failing. Recreation keys off the template
+# name (goa-api, react-ui); unknown types are refused — see
+# ensure_proxy_file. dev-up never renders from the template directly:
+# render_dev_stanza ensures the stable file first, then derives the dev
+# stanza from it via the asserted rewrites below.
 #
 # gen-config.json maps each consumed API (<api-id> from spec/*.openapi.json)
 # to its same-origin path. <prefix> is "" for stable bundles,
@@ -24,7 +28,7 @@ _has_placeholders() { # <file> — 0 when any {{ or ${ placeholder remains in di
     grep -v '^[[:space:]]*#' "$1" | grep -q -F -e '{{' -e '${'
 }
 
-render_stanza() { # <template> <id> <path> <dest> — render owned stanza to dest
+render_stanza() { # <template> <id> <path> <dest> — render template stanza to dest
     _L_src=$(stanza_src "$1")
     [ -f "$_L_src" ] || die "template '$1' has no proxy stanza source ($_L_src)"
     _L_tmp=$(tmp_in_dir "$(dirname -- "$4")")
@@ -42,25 +46,33 @@ render_stanza() { # <template> <id> <path> <dest> — render owned stanza to des
     atomic_mv "$_L_tmp" "$4"
 }
 
-render_dev_stanza() { # <session> <id> <dest> — derive the dev stanza from the stable proxy file
+ensure_proxy_file() { # <id> — re-render the stable stanza from the deployment's template plus pin
+    validate_id "$1"
+    _L_t=$(pin_template "$1")
+    template_kind "$_L_t" >/dev/null
+    render_stanza "$_L_t" "$1" "$(id_to_path "$1")" "$(proxy_file "$1")"
+}
+
+render_dev_stanza() { # <session> <id> <dest> — ensure the stable stanza, then derive the dev stanza from it
     validate_session "$1"
     validate_id "$2"
+    ensure_proxy_file "$2"
     _L_src=$(proxy_file "$2")
-    [ -f "$_L_src" ] || die "stable proxy file '$_L_src' is missing (it renders once at create time; restore it from git - proxy/deployments/ is committed)"
     _L_path=$(id_to_path "$2")
     _L_t=$(pin_template "$2")
     _L_kind=$(template_kind "$_L_t")
     # Every substitution is asserted: the stable pattern must be present and
-    # the dev result must land, else the stable file was tampered with. The
-    # temp file is allocated only after the pre-asserts pass, so failures
-    # leave neither temp files nor empty dest dirs behind.
+    # the dev result must land, else the template shape drifted from what
+    # derivation expects. The temp file is allocated only after the
+    # pre-asserts pass, so failures leave neither temp files nor empty
+    # dest dirs behind.
     _L_prefix="handle_path /$_L_path/*"
     _L_devprefix="handle_path /dev/$1/$_L_path/*"
-    grep -q -F -- "$_L_prefix" "$_L_src" || die "stable proxy file '$_L_src' has no '$_L_prefix' line (tampered?)"
+    grep -q -F -- "$_L_prefix" "$_L_src" || die "stable proxy file '$_L_src' has no '$_L_prefix' line (template shape drifted?)"
     if [ "$_L_kind" = "api" ]; then
         _L_sock="$2.sock"
         _L_devsock="$2.dev-$1.sock"
-        grep -q -F -- "$_L_sock" "$_L_src" || die "stable proxy file '$_L_src' has no '$_L_sock' upstream (tampered?)"
+        grep -q -F -- "$_L_sock" "$_L_src" || die "stable proxy file '$_L_src' has no '$_L_sock' upstream (template shape drifted?)"
         _L_tmp=$(tmp_in_dir "$(dirname -- "$3")")
         sed -e "s|$(_bre_escape "$_L_prefix")|$(_sed_escape "$_L_devprefix")|g" \
             -e "s|$(_bre_escape "$_L_sock")|$(_sed_escape "$_L_devsock")|g" \
@@ -69,7 +81,7 @@ render_dev_stanza() { # <session> <id> <dest> — derive the dev stanza from the
     else
         _L_root="$REPO_ROOT/bin/$_L_path"
         _L_devroot="$REPO_ROOT/run/$1/bundles/$_L_path"
-        grep -q -F -- "$_L_root" "$_L_src" || die "stable proxy file '$_L_src' has no '$_L_root' root (tampered?)"
+        grep -q -F -- "$_L_root" "$_L_src" || die "stable proxy file '$_L_src' has no '$_L_root' root (template shape drifted?)"
         _L_tmp=$(tmp_in_dir "$(dirname -- "$3")")
         sed -e "s|$(_bre_escape "$_L_prefix")|$(_sed_escape "$_L_devprefix")|g" \
             -e "s|$(_bre_escape "$_L_root")|$(_sed_escape "$_L_devroot")|g" \

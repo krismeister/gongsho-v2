@@ -15,6 +15,18 @@ directive behavior below follows the Caddy docs cited in phase-plan Sources.
 Imports resolve relative to the importing file, and empty globs are safe, so
 `dev.d/` may sit empty with zero routes. Caddy loads this file as its config.
 
+## Derivation (stanzas are gitignored)
+
+Files under `proxy/deployments/` are derived, never committed or
+hand-edited: every verb re-renders each stanza from the owning template's
+`config/caddy/stanza` plus the deployment pin (id, path, `REPO_ROOT`)
+before reloading Caddy, so missing or stale files heal instead of
+failing. Recreation keys off the template name: `goa-api` and `react-ui`
+deployments re-render; unknown template types are refused loudly. Dev
+files under `proxy/dev.d/`
+derive from the ensured stable file via the asserted
+prefix/socket/root rewrites.
+
 ## API stanza (`proxy/deployments/<id>`, rendered from template)
 
 ```
