@@ -7,6 +7,8 @@ case $0 in
     *) _d=$(dirname -- "$(command -v "$0" 2>/dev/null || printf '%s' "$0")") ;;
 esac
 [ -f "$_d/lib.sh" ] || { echo "error: cannot find lib.sh (invoked as $0)" >&2; exit 1; }
+# Absolute: this verb cds before invoking sibling verbs.
+_d=$(CDPATH= cd -- "$_d" && pwd) || { echo "error: cannot resolve tools dir (invoked as $0)" >&2; exit 1; }
 . "$_d/lib.sh"
 
 print_help() { cat <<'EOF'
@@ -98,11 +100,11 @@ else
         fi
         unset _api _pt _cur
     done
-    [ -x "$_app/node_modules/.bin/vite" ] || die "node_modules missing for '$_id' (run: cd $_app && npm install)"
-    need_cmd npm "Node.js toolchain (documented prerequisite)"
-    ( cd "$_app" && npm run build -- --base="/$_path/" ) || die "npm build failed (see above)"
+    [ -x "$_app/node_modules/.bin/vite" ] || die "node_modules missing for '$_id' (run: tools/install $_id)"
+    ( cd "$_app" && sh "$_d/pnpm" run build -- --base="/$_path/" ) || die "UI build failed (see above)"
     [ -f "$_app/dist/index.html" ] || die "build produced no dist/index.html"
     rm -rf -- "${_bin}.new"
+    ensure_dir "$(dirname -- "${_bin}.new")" || die "cannot create build scratch"
     mv -- "$_app/dist" "${_bin}.new" || die "cannot stage bundle"
     rm -rf -- "$_bin" || die "cannot replace old bundle"
     mv -- "${_bin}.new" "$_bin" || die "bundle promotion failed"

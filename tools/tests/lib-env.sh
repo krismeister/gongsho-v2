@@ -14,7 +14,7 @@ pass=0; fail=0
 ok() { pass=$((pass+1)); printf 'ok: %s\n' "$1"; }
 bad() { fail=$((fail+1)); printf 'FAIL: %s\n' "$1"; }
 
-_clear='unset GONGSHO_HOME GONGSHO_SCHEME GONGSHO_HOST GONGSHO_PORT GONGSHO_START_HEALTH_TIMEOUT GONGSHO_STOP_GRACE GONGSHO_MIGRATE_VERSION GOCACHE GOMODCACHE GOPATH GOFLAGS'
+_clear='unset GONGSHO_HOME GONGSHO_SCHEME GONGSHO_HOST GONGSHO_PORT GONGSHO_START_HEALTH_TIMEOUT GONGSHO_STOP_GRACE GONGSHO_MIGRATE_VERSION GONGSHO_PNPM_VERSION GOCACHE GOMODCACHE GOPATH GOFLAGS'
 
 # --- defaults: fake root without .env, ambient vars cleared ---
 if _def=$(eval "$_clear"; GONGSHO_REPO="$F" VERB=t; . "$R/tools/lib.sh" >/dev/null 2>&1; printf '%s|%s|%s|%s' "$CADDY_ORIGIN" "$START_HEALTH_TIMEOUT" "$STOP_GRACE" "$MIGRATE_VERSION"); then
@@ -90,6 +90,28 @@ if _ho=$(eval "$_clear"; GONGSHO_REPO="$F" VERB=t; . "$R/tools/lib.sh" >/dev/nul
     fi
 else
     bad "home from .env (source failed)"
+fi
+rm -f "$F/.env"
+
+# --- PNPM_VERSION: default pin, .env override ---
+if _pv=$(eval "$_clear"; GONGSHO_REPO="$F" VERB=t; . "$R/tools/lib.sh" >/dev/null 2>&1; printf '%s' "$PNPM_VERSION"); then
+    if [ "$_pv" = "9.15.9" ]; then
+        ok "pnpm version defaults"
+    else
+        bad "pnpm version defaults (got '$_pv')"
+    fi
+else
+    bad "pnpm version defaults (source failed)"
+fi
+printf 'GONGSHO_PNPM_VERSION=9.9.9\n' >"$F/.env"
+if _pvo=$(eval "$_clear"; GONGSHO_REPO="$F" VERB=t; . "$R/tools/lib.sh" >/dev/null 2>&1; printf '%s' "$PNPM_VERSION"); then
+    if [ "$_pvo" = "9.9.9" ]; then
+        ok "pnpm version from .env"
+    else
+        bad "pnpm version from .env (got '$_pvo')"
+    fi
+else
+    bad "pnpm version from .env (source failed)"
 fi
 rm -f "$F/.env"
 

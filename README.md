@@ -13,7 +13,8 @@ no implementation exists yet.
   `github.com/mikefarah/yq` line, not a `jq` line; the Python `yq`
   wrapper is a different tool and will not work).
 - Playwright browsers install per UI project
-  (`npx playwright install --with-deps`).
+  (`pnpm exec playwright install --with-deps`, with the harness pnpm on
+  `PATH` per the UI template README).
 - Standard shell tooling: git, curl, bash.
 
 Omarchy/Arch install for the toolchain:

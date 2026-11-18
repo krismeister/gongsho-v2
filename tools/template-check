@@ -7,6 +7,8 @@ case $0 in
     *) _d=$(dirname -- "$(command -v "$0" 2>/dev/null || printf '%s' "$0")") ;;
 esac
 [ -f "$_d/lib.sh" ] || { echo "error: cannot find lib.sh (invoked as $0)" >&2; exit 1; }
+# Absolute: this verb cds before invoking sibling verbs.
+_d=$(CDPATH= cd -- "$_d" && pwd) || { echo "error: cannot resolve tools dir (invoked as $0)" >&2; exit 1; }
 . "$_d/lib.sh"
 
 print_help() { cat <<'EOF'
@@ -52,7 +54,7 @@ trap '_cleanup' EXIT
 log "checking template '$_t' (scratch $_id)"
 sh "$_d/create" "$_path" --template "$_t" || die "create step failed"
 if [ "$_kind" = "ui" ]; then
-    ( cd "$_app" && npm install ) || die "npm install failed (see above)"
+    sh "$_d/install" "$_id" || die "install step failed"
 fi
 sh "$_d/build" "$_id" || die "build step failed"
 
@@ -67,7 +69,7 @@ if [ "$_kind" = "api" ]; then
     log "gen/ regen-clean"
 else
     ( cd "$_app" && find src/client -type f -exec sha256sum {} + | sort -k2 ) >"$_h1" || die "cannot hash src/client/"
-    ( cd "$_app" && npm run gen-client ) || die "client regen failed (see above)"
+    ( cd "$_app" && sh "$_d/pnpm" run gen-client ) || die "client regen failed (see above)"
     ( cd "$_app" && find src/client -type f -exec sha256sum {} + | sort -k2 ) >"$_h2" || die "cannot hash src/client/"
     cmp -s -- "$_h1" "$_h2" || die "src/client/ is not regen-clean (regeneration changed committed output)"
     log "src/client/ regen-clean"

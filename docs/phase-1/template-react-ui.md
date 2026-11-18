@@ -6,8 +6,11 @@ official Vite `react-ts` template shape plus gongsho wiring.
 ## Scaffold (`templates/react-ui/app/`, copied to the deployment)
 
 - `package.json` — react, vite, Hey API client dep, Playwright; scripts
-  `build`, `build:dev`, `gen-client`, `test-e2e`. Pin exact versions at
-  implementation.
+  `build`, `build:dev`, `gen-client`, `test-e2e`, all run under pnpm.
+  Pin exact versions at implementation.
+- `pnpm-lock.yaml` — committed resolve of the exact pins. Installs run
+  through `tools/pnpm` (vendored pnpm 9, shared repo-local store),
+  never bare npm.
 - `vite.config.ts` — React plugin; base path supplied per build via the
   `--base` flag (verified Vite behavior), never baked into the file.
 - `index.html`, `src/` — entry plus `App` and API callers using the

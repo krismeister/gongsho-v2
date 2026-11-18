@@ -18,13 +18,13 @@ is app property after scaffold.
 ## Scaffold (Muse)
 
 `create <path> --template react-ui` copies `app/` to `apps/<path>/` and
-writes `.gongsho-deployment.yaml` beside it (harness-owned). Then, from
-`GONGSHO_HOME`:
+writes `.gongsho-deployment.yaml` beside it (harness-owned). Then:
 
 ```sh
-cd apps/<path>
-npm install
-npm run build -- --base=/<path>/
+export PATH="$PWD/tools:$PATH"   # once per session, from the repo checkout
+cd ../apps/<path>                # the sibling apps tree (see skill Layout)
+pnpm install
+pnpm run build -- --base=/<path>/
 ```
 
 Raw scaffold builds green with zero snapshots: `gen-client` no-ops and the
@@ -32,8 +32,8 @@ shell renders a "no APIs" state. Wire APIs via `refresh-spec`, then rebuild.
 
 ## Contracts for the harness
 
-- **Build:** `npm run build -- --base=/<path>/` (stable) and
-  `npm run build:dev -- --base=/dev/<session>/<path>/` (e2e profile:
+- **Build:** `pnpm run build -- --base=/<path>/` (stable) and
+  `pnpm run build:dev -- --base=/dev/<session>/<path>/` (e2e profile:
   sourcemaps on, minify off). Both regen clients, typecheck, and emit
   `dist/` with hashed assets under `assets/` (stock Vite dir, matches the
   proxy long-cache matcher). Promotion to `bin/` is the harness's job.
@@ -51,7 +51,7 @@ shell renders a "no APIs" state. Wire APIs via `refresh-spec`, then rebuild.
   after building. The app fetches `<base>/gen-config.json` at runtime.
   The `gen-` prefix reserves the name to the harness; apps remain free to
   own a plain `config.json` of their own.
-- **E2E:** `npm run test-e2e` (Playwright across Chromium/Firefox/WebKit).
+- **E2E:** `pnpm run test-e2e` (Playwright across Chromium/Firefox/WebKit).
   `playwright.config.ts` reads the deployment id from the pin and uses
   `E2E_APP_<IDSLUG>`; artifacts go to `E2E_ARTIFACTS_DIR`. Without a pin
   it falls back to `E2E_BASE_URL`, and with neither env var the config
@@ -78,5 +78,7 @@ are byte-deterministic and committed, never hand-edited.
 | @types/react / @types/react-dom | 19.3.0 | match React 19 |
 | @types/node | 26.6.6 | latest; config/e2e types |
 | node floor | >=22.18.0 | from Hey API engines (covers Vite/Playwright) |
+| pnpm | 9.15.9 | toolchain (not a dep): vendored by cache-warm; v9 line only, v12 store locks fail sandboxed |
 
-No lockfile ships: exact pins in `package.json` are the pin mechanism.
+`pnpm-lock.yaml` ships, generated from the exact pins; installs run
+through `tools/pnpm` (shared repo-local store), never bare npm.

@@ -10,10 +10,11 @@ runs there; `tools/*` verbs run from the repo checkout.
 tools/refresh-spec acme_shop_ui-1 acme_shop_api-1
 ```
 
-2. Regenerate clients:
+2. Regenerate clients (needs harness `pnpm` on `PATH`: from the repo
+   checkout, `export PATH="$PWD/tools:$PATH"`, once per session):
 
 ```sh
-npm run gen-client
+pnpm run gen-client
 ```
 
 (`src/client/` is output: re-run this to change it.)

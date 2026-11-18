@@ -5,7 +5,7 @@
 set -eu
 TEST_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 R=$(CDPATH= cd -- "$TEST_DIR/../.." && pwd)
-unset GONGSHO_HOME GONGSHO_SCHEME GONGSHO_HOST GONGSHO_PORT GONGSHO_START_HEALTH_TIMEOUT GONGSHO_STOP_GRACE GONGSHO_MIGRATE_VERSION
+unset GONGSHO_HOME GONGSHO_SCHEME GONGSHO_HOST GONGSHO_PORT GONGSHO_START_HEALTH_TIMEOUT GONGSHO_STOP_GRACE GONGSHO_MIGRATE_VERSION GONGSHO_PNPM_VERSION
 F=$(mktemp -d)
 _killall() {
     for _pf in "$F"/proxy/sockets/*.pid; do
@@ -434,24 +434,46 @@ fi
 echo "stub-go-cachewarm: wrong call $*" >&2; exit 1
 SHEOF
 chmod +x "$F/cwbin/go"
+cat >"$F/cwbin/npm" <<'SHEOF'
+#!/bin/sh
+set -eu
+if [ "$1" = "install" ]; then
+    _pp=""
+    _prev=""
+    for _a in "$@"; do
+        if [ "$_prev" = "--prefix" ]; then _pp=$_a; fi
+        _prev=$_a
+    done
+    [ -n "$_pp" ] || { echo "stub-npm: no prefix" >&2; exit 1; }
+    mkdir -p "$_pp/node_modules/.bin"
+    printf '#!/bin/sh\nexit 0\n' >"$_pp/node_modules/.bin/pnpm"
+    chmod +x "$_pp/node_modules/.bin/pnpm"
+    exit 0
+fi
+echo "stub-npm: wrong call $*" >&2; exit 1
+SHEOF
+chmod +x "$F/cwbin/npm"
 _cw_oldpath=$PATH
 PATH="$F/cwbin:$PATH"
 runv cache-warm
 if [ "$_rc" = "0" ] && [ -x "$F/tools/bin/migrate" ] \
-    && [ "$(cat "$F/tools/bin/migrate.version")" = "v4.20.1" ]; then
+    && [ "$(cat "$F/tools/bin/migrate.version")" = "v4.20.1" ] \
+    && [ -x "$F/.cache/pnpm/node_modules/.bin/pnpm" ] \
+    && [ "$(cat "$F/.cache/pnpm/pnpm.version")" = "9.15.9" ]; then
     ok "cache-warm builds migrate"
 else
     bad "cache-warm builds migrate (exit $_rc: $_out)"
 fi
 runv cache-warm
-if [ "$_rc" = "0" ] && printf '%s' "$_out" | grep -q -F "already built"; then
+if [ "$_rc" = "0" ] && printf '%s' "$_out" | grep -q -F "already built" \
+    && printf '%s' "$_out" | grep -q -F "already provisioned"; then
     ok "cache-warm skips when warm"
 else
     bad "cache-warm skips when warm (exit $_rc: $_out)"
 fi
 PATH=$_cw_oldpath
 unset _cw_oldpath
-rm -rf "$F/tools/bin"
+rm -rf "$F/tools/bin" "$F/.cache"
 
 # --- build --if-stale skips fresh outputs (stale paths proven in loop) ---
 touch "$F/bin/acme/shop/api-1/api"
@@ -461,6 +483,41 @@ printf '<html>ui</html>' >"$F/bin/acme/shop/ui-1/index.html"
 printf 'x' >"$F/bin/acme/shop/ui-1/assets/app.js"
 touch "$F/bin/acme/shop/ui-1/index.html" "$F/bin/acme/shop/ui-1/assets/app.js"
 expect_rc_grep "build if-stale ui fresh" 0 "up to date" build --if-stale acme_shop_ui-1
+
+# --- install dispatches to vendored pnpm (fake entry records calls) ---
+mkdir -p "$F/.cache/pnpm/node_modules/.bin"
+cat >"$F/.cache/pnpm/node_modules/.bin/pnpm" <<'SHEOF'
+#!/bin/sh
+printf '%s\n' "$*" >>"${PNPM_CALL_LOG:?}"
+exit 0
+SHEOF
+chmod +x "$F/.cache/pnpm/node_modules/.bin/pnpm"
+export PNPM_CALL_LOG="$F/pnpm.calls"
+expect_rc "install ui ok" 0 install acme_shop_ui-1
+if grep -q -F "install --store-dir $F/.cache/pnpm/store" "$F/pnpm.calls"; then
+    ok "install uses shared store"
+else
+    bad "install uses shared store"
+fi
+runv pnpm import somewhere.lock
+if [ "$_rc" = "0" ] && grep -qx -F "import somewhere.lock" "$F/pnpm.calls"; then
+    ok "pnpm import passes through"
+else
+    bad "pnpm import passes through (exit $_rc)"
+fi
+_rrc=0
+( cd "$R" && sh tools/install acme_shop_ui-1 ) >/dev/null 2>&1 || _rrc=$?
+if [ "$_rrc" = "0" ]; then
+    ok "install via relative path"
+else
+    bad "install via relative path (exit $_rrc)"
+fi
+unset _rrc
+expect_rc_grep "install api refused" 1 "nothing to install" install acme_shop_api-1
+rm "$F/.cache/pnpm/node_modules/.bin/pnpm"
+expect_rc_grep "install unprovisioned" 1 "pnpm install failed" install acme_shop_ui-1
+unset PNPM_CALL_LOG
+rm -rf "$F/.cache"
 
 # --- retire API positive (last: archives the api deployment) ---
 mkdir -p "$F/proxy/deployments"
@@ -479,10 +536,12 @@ fi
 # --- startup against an isolated fake root (per-deployment boot proven in loop) ---
 if command -v python3 >/dev/null 2>&1; then
     _S2=$(mktemp -d)
-    mkdir -p "$_S2/tools" "$_S2/templates/goa-api/app" "$_S2/proxy"
+    mkdir -p "$_S2/tools" "$_S2/templates/goa-api/app" "$_S2/templates/react-ui/app" "$_S2/proxy"
     cp "$R/tools/lib.sh" "$_S2/tools/lib.sh"
     printf 'module stub\n\ngo 1.23\n' >"$_S2/templates/goa-api/app/go.mod"
     printf '' >"$_S2/templates/goa-api/app/go.sum"
+    printf '{"name":"stub"}\n' >"$_S2/templates/react-ui/app/package.json"
+    printf '# stub lock\n' >"$_S2/templates/react-ui/app/pnpm-lock.yaml"
     _o_repo=$GONGSHO_REPO; _o_home=$GONGSHO_HOME
     export GONGSHO_REPO=$_S2 GONGSHO_HOME=$_S2 GONGSHO_PORT=18281
     _oldpath2=$PATH; PATH="$F/cwbin:$PATH"

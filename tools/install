@@ -1,0 +1,33 @@
+#!/bin/sh
+# tools/install — install a UI deployment's node dependencies.
+set -eu
+VERB=install
+case $0 in
+    */*) _d=$(dirname -- "$0") ;;
+    *) _d=$(dirname -- "$(command -v "$0" 2>/dev/null || printf '%s' "$0")") ;;
+esac
+[ -f "$_d/lib.sh" ] || { echo "error: cannot find lib.sh (invoked as $0)" >&2; exit 1; }
+# Absolute: this verb cds before invoking sibling verbs.
+_d=$(CDPATH= cd -- "$_d" && pwd) || { echo "error: cannot resolve tools dir (invoked as $0)" >&2; exit 1; }
+. "$_d/lib.sh"
+
+print_help() { cat <<'EOF'
+usage: tools/install <id>
+
+Install a UI deployment's node dependencies via the vendored pnpm
+into node_modules (shared repo-local store). APIs have nothing to
+install. Idempotent: re-running completes or verifies the install.
+
+Prerequisites: provisioned pnpm (tools/cache-warm).
+EOF
+}
+
+case "${1:-}" in -h|--help) print_help; exit 0 ;; esac
+[ $# -eq 1 ] || usage "want exactly one deployment ID"
+_id=$1
+validate_id "$_id"
+validate_pin "$_id"
+_kind=$(template_kind "$(pin_template "$_id")")
+[ "$_kind" = "ui" ] || die "'$_id' is an API deployment (nothing to install)"
+( cd "$(app_dir "$_id")" && sh "$_d/pnpm" install ) || die "pnpm install failed for '$_id' (see above)"
+log "installed node_modules for '$_id'"

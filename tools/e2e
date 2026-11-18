@@ -7,7 +7,14 @@ case $0 in
     *) _d=$(dirname -- "$(command -v "$0" 2>/dev/null || printf '%s' "$0")") ;;
 esac
 [ -f "$_d/lib.sh" ] || { echo "error: cannot find lib.sh (invoked as $0)" >&2; exit 1; }
+# Absolute: this verb cds before invoking sibling verbs.
+_d=$(CDPATH= cd -- "$_d" && pwd) || { echo "error: cannot resolve tools dir (invoked as $0)" >&2; exit 1; }
 . "$_d/lib.sh"
+
+# Playwright browsers default to the repo-local cache (sandboxed shells
+# cannot write the ~/.cache default); an explicit setting always wins.
+PLAYWRIGHT_BROWSERS_PATH="${PLAYWRIGHT_BROWSERS_PATH:-$REPO_ROOT/.cache/ms-playwright}"
+export PLAYWRIGHT_BROWSERS_PATH
 
 print_help() { cat <<'EOF'
 usage: tools/e2e <id>...
@@ -61,7 +68,7 @@ for _id in $_ids; do
         _path=$(id_to_path "$_id")
         _app=$(app_dir "$_id")
         _bdir=$(dev_bundle_dir "$_session" "$_id")
-        ( cd "$_app" && npm run build:dev -- --base="/dev/$_session/$_path/" ) || die "dev bundle build failed for '$_id'"
+        ( cd "$_app" && sh "$_d/pnpm" run build:dev -- --base="/dev/$_session/$_path/" ) || die "dev bundle build failed for '$_id'"
         [ -f "$_app/dist/index.html" ] || die "dev bundle build produced no dist/index.html"
         rm -rf -- "$_bdir"
         ensure_dir "$(dirname -- "$_bdir")" || die "cannot create bundle scratch"
@@ -105,7 +112,7 @@ for _id in $_ids; do
     _kind=$(template_kind "$_t")
     if [ "$_kind" = "ui" ]; then
         log "running UI e2e for '$_id' (browser run; this takes a while)"
-        if ( cd "$(app_dir "$_id")" && npm run test-e2e ); then
+        if ( cd "$(app_dir "$_id")" && sh "$_d/pnpm" run test-e2e ); then
             log "UI e2e passed for '$_id'"
         else
             log "UI e2e FAILED for '$_id'"; _rfail=1

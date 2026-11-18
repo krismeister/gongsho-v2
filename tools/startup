@@ -14,8 +14,8 @@ usage: tools/startup
 
 Ensure Caddy is running, ensure caches are warm (via cache-warm),
 re-render every deployment's proxy stanza plus one reload, then boot
-every deployment: APIs before UIs, each built when stale (npm
-install first for UIs missing node_modules), each API started unless
+every deployment: APIs before UIs, each built when stale (UI
+dependencies installed first via install), each API started unless
 already running, each verified through Caddy. Idempotent: safe to run
 anytime. Skips nothing silently; per-deployment failures are collected
 and reported at the end with a nonzero exit. Never migrates (boot is
@@ -101,10 +101,8 @@ _boot_one() { # <id> — build-if-stale, start-if-down (APIs), verify via Caddy
     _b_kind=$(template_kind "$_b_t")
     _b_path=$(id_to_path "$_b_id")
     _b_app=$(app_dir "$_b_id")
-    if [ "$_b_kind" = "ui" ] && [ ! -x "$_b_app/node_modules/.bin/vite" ]; then
-        need_cmd npm "Node.js toolchain (documented prerequisite)"
-        log "installing node_modules for '$_b_id'"
-        ( cd "$_b_app" && npm install ) || return 1
+    if [ "$_b_kind" = "ui" ]; then
+        sh "$_d/install" "$_b_id" || return 1
     fi
     sh "$_d/build" --if-stale "$_b_id" || return 1
     if [ "$_b_kind" = "api" ]; then

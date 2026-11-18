@@ -172,7 +172,8 @@ runtime layout), `e2e-standard.md` (env contract plus runners),
 
 - Project lane (human now, agents later): create, build, deploy, check, e2e,
   refresh-spec, dev-up, dev-down, start, stop, restart, status, retire,
-  cache-warm, startup (assumed in v1). System lane (human-driven):
+  cache-warm, startup, install, pnpm (assumed in v1). System lane
+  (human-driven):
   template-check; template-new skipped and version bumps later
   (both assumed).
 - create: validate ID, scaffold app, write pin, create empty DB plus migrate

@@ -9,7 +9,7 @@ cd "$ROOT"
 
 BIN="$ROOT/node_modules/.bin/openapi-ts"
 if [ ! -x "$BIN" ]; then
-  echo "gen-client: missing $BIN -- run 'npm install' first" >&2
+  echo "gen-client: missing $BIN -- run 'tools/install <id>' from the repo checkout first" >&2
   exit 1
 fi
 

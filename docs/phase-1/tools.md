@@ -40,7 +40,12 @@ alongside Go, Node, Caddy).
   prebuilt `tools/bin/migrate` matching the pin, else `go run`.
 - `cache-warm` — download template Go modules, compile the pinned
   migrate binary into `tools/bin/` (plus version sidecar), compile the
-  pinned goa CLI for build-cache warmth. Idempotent.
+  pinned goa CLI for build-cache warmth, vendor the pinned pnpm into
+  `.cache/pnpm` (plus sidecar) with UI deps prefetched. Idempotent.
+- `install <id>` — install a UI deployment's node deps via vendored
+  pnpm (shared store). APIs have nothing to install.
+- `pnpm <args...>` — vendored pnpm with the shared store
+  preconfigured (store commands); run/exec pass through.
 - `startup` — ensure Caddy, run `cache-warm`, re-render all proxy
   stanzas plus one reload, boot every deployment
   (APIs first): build when stale, start APIs unless running, verify

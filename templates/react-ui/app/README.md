@@ -7,18 +7,22 @@ no CORS configuration anywhere. API addresses come from the deploy-written
 ## Prerequisites
 
 - Node.js >= 22.18.0 (`engines` enforces this).
-- For browser e2e: `npx playwright install --with-deps` (one-time).
+- From the repo checkout, once per session:
+  `export PATH="$PWD/tools:$PATH"` — then bare `pnpm` below means the
+  vendored pnpm 9 with the shared store. Never use bare npm.
+- For browser e2e: `pnpm exec playwright install --with-deps` (one-time;
+  honors `PLAYWRIGHT_BROWSERS_PATH`, which the harness defaults repo-local).
 
 ## Commands
 
 ```sh
-npm install
-npm run dev                        # local dev server (root base)
-npm run build -- --base=/team/project/dep/     # stable bundle -> dist/
-npm run build:dev -- --base=/dev/<s>/team/project/dep/  # e2e bundle: sourcemaps on, minify off
-npm run gen-client                 # regen Hey API clients from spec/ snapshots
-npm run test-e2e                   # Playwright (needs e2e env, see below)
-npm run preview                    # serve dist/ locally (root base only)
+pnpm install
+pnpm run dev                        # local dev server (root base)
+pnpm run build -- --base=/team/project/dep/     # stable bundle -> dist/
+pnpm run build:dev -- --base=/dev/<s>/team/project/dep/  # e2e bundle: sourcemaps on, minify off
+pnpm run gen-client                 # regen Hey API clients from spec/ snapshots
+pnpm run test-e2e                   # Playwright (needs e2e env, see below)
+pnpm run preview                    # serve dist/ locally (root base only)
 ```
 
 Both builds regen clients first, then typecheck (`tsc -b`), then bundle.
@@ -28,7 +32,7 @@ Both builds regen clients first, then typecheck (`tsc -b`), then bundle.
 
 1. `refresh-spec <ui-id> <api-id>` copies the API's current OpenAPI into
    `spec/<api-id>.openapi.json`. Presence declares consumption.
-2. `npm run gen-client` generates `src/client/<api-id>/` (one Hey API run
+2. `pnpm run gen-client` generates `src/client/<api-id>/` (one Hey API run
    per snapshot). Never hand-edit generated output.
 3. Join the boot gate in `src/lib/boot.ts`: `setConfig({ baseUrl })` the
    generated client from config before anything renders:

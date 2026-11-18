@@ -4,12 +4,13 @@ Gongsho `react-ui` deployment: a Vite static SPA (React + TypeScript).
 You are working in the deployment dir, and it is your whole world: every
 path and command below lives inside it. Scaffold/run/wire detail: `README.md`.
 
-## Commands (this dir)
+## Commands (this dir; needs harness `pnpm` on `PATH` — from the repo
+checkout: `export PATH="$PWD/tools:$PATH"`, once per session)
 
-- `npm install`, `npm run dev`
-- `npm run build -- --base=/<team>/<project>/<deployment>/` (stable bundle)
-- `npm run build:dev -- --base=/dev/<session>/<team>/<project>/<deployment>/` (e2e bundle)
-- `npm run gen-client`, `npm run test-e2e`
+- `pnpm install`, `pnpm run dev`
+- `pnpm run build -- --base=/<team>/<project>/<deployment>/` (stable bundle)
+- `pnpm run build:dev -- --base=/dev/<session>/<team>/<project>/<deployment>/` (e2e bundle)
+- `pnpm run gen-client`, `pnpm run test-e2e`
 
 ## Contracts
 
@@ -26,7 +27,7 @@ path and command below lives inside it. Scaffold/run/wire detail: `README.md`.
 ## Never touch
 
 - `.gongsho-deployment.yaml` (harness-owned pin)
-- `src/client/` (generated; regen with `npm run gen-client`, never edit)
+- `src/client/` (generated; regen with `pnpm run gen-client`, never edit)
 
 ## Detail
 

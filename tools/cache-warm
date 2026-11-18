@@ -13,12 +13,14 @@ print_help() { cat <<'EOF'
 usage: tools/cache-warm
 
 Download goa-api template modules, compile the pinned migrate binary
-into tools/bin/ (with its version sidecar), and compile the pinned goa
-CLI so its build-cache entries are warm. Idempotent: re-runs skip
+into tools/bin/ (with its version sidecar), compile the pinned goa
+CLI so its build-cache entries are warm, and vendor the pinned pnpm
+into .cache/pnpm (plus its version sidecar) with the template's UI
+dependencies prefetched to the shared store. Idempotent: re-runs skip
 whatever already matches. Run once per machine and after any pin bump;
 startup runs this as a step.
 
-Prerequisites: Go toolchain.
+Prerequisites: Go toolchain, npm (bootstraps vendored pnpm only).
 EOF
 }
 
@@ -57,4 +59,26 @@ _gobin=$(mktemp -d) || die "cannot create temp dir"
 GOBIN="$_gobin" go install "goa.design/goa/v3/cmd/goa@$_goaver" || { rm -rf -- "$_gobin"; die "goa install failed (see above)"; }
 rm -rf -- "$_gobin"
 log "goa $_goaver compiled (build cache warm)"
+
+_pnpm_dir="$REPO_ROOT/.cache/pnpm"
+_pnpm_bin="$_pnpm_dir/node_modules/.bin/pnpm"
+_pnpm_pin="$_pnpm_dir/pnpm.version"
+if [ -x "$_pnpm_bin" ] && [ -f "$_pnpm_pin" ] && [ "$(cat -- "$_pnpm_pin")" = "$PNPM_VERSION" ]; then
+    log "pnpm $PNPM_VERSION already provisioned"
+else
+    need_cmd npm "npm (bootstraps vendored pnpm)"
+    log "provisioning pnpm $PNPM_VERSION"
+    rm -rf -- "$_pnpm_dir"
+    npm_config_cache="$REPO_ROOT/.cache/npm" npm install --prefix "$_pnpm_dir" "@pnpm/exe@$PNPM_VERSION" || die "pnpm provision failed (see above)"
+    [ -x "$_pnpm_bin" ] || die "pnpm provision produced no binary"
+    _ptmp2=$(tmp_in_dir "$_pnpm_dir")
+    printf '%s\n' "$PNPM_VERSION" >"$_ptmp2"
+    atomic_mv "$_ptmp2" "$_pnpm_pin"
+    log "provisioned $_pnpm_bin ($PNPM_VERSION)"
+fi
+_ft=$(mktemp -d) || die "cannot create temp dir"
+cp -- "$REPO_ROOT/templates/react-ui/app/package.json" "$REPO_ROOT/templates/react-ui/app/pnpm-lock.yaml" "$_ft/" || { rm -rf -- "$_ft"; die "cannot stage UI manifests"; }
+( cd "$_ft" && "$_pnpm_bin" fetch --store-dir "$REPO_ROOT/.cache/pnpm/store" ) || { rm -rf -- "$_ft"; die "pnpm fetch failed (see above)"; }
+rm -rf -- "$_ft"
+log "UI dependencies prefetched to the shared store"
 log "cache warm"

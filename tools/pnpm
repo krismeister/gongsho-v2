@@ -1,0 +1,36 @@
+#!/bin/sh
+# tools/pnpm — vendored pnpm with the shared repo-local store.
+set -eu
+VERB=pnpm
+case $0 in
+    */*) _d=$(dirname -- "$0") ;;
+    *) _d=$(dirname -- "$(command -v "$0" 2>/dev/null || printf '%s' "$0")") ;;
+esac
+[ -f "$_d/lib.sh" ] || { echo "error: cannot find lib.sh (invoked as $0)" >&2; exit 1; }
+. "$_d/lib.sh"
+
+print_help() { cat <<'EOF'
+usage: tools/pnpm <pnpm-args...>
+
+Run the cache-warm-provisioned pnpm. Store commands (install, add,
+fetch, update, remove, store, rebuild, dedupe) get --store-dir
+pointed at the shared repo-local store; everything else (run, exec,
+import, …) passes through untouched. Run tools/cache-warm first
+(once per machine/pin).
+EOF
+}
+
+case "${1:-}" in -h|--help) print_help; exit 0 ;; esac
+[ $# -ge 1 ] || usage "want a pnpm command"
+_pnpm="$REPO_ROOT/.cache/pnpm/node_modules/.bin/pnpm"
+[ -x "$_pnpm" ] || die "pnpm not provisioned (run: tools/cache-warm)"
+# Nested `pnpm ...` calls inside scripts resolve to this same binary.
+PATH="$(dirname -- "$_pnpm"):$PATH"
+export PATH
+case $1 in
+    install|add|fetch|update|remove|store|rebuild|dedupe)
+        _cmd=$1; shift
+        exec "$_pnpm" "$_cmd" --store-dir "$REPO_ROOT/.cache/pnpm/store" "$@"
+        ;;
+    *) exec "$_pnpm" "$@" ;;
+esac

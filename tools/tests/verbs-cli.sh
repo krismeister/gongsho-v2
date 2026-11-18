@@ -1,10 +1,10 @@
 #!/bin/sh
-# verbs-cli.sh — CLI contract for all 17 verbs: help, usage errors, unknown
+# verbs-cli.sh — CLI contract for all 19 verbs: help, usage errors, unknown
 # deployments, hermetic state failures. Fake repo only; no toolchains run.
 set -eu
 TEST_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 R=$(CDPATH= cd -- "$TEST_DIR/../.." && pwd)
-unset GONGSHO_HOME GONGSHO_SCHEME GONGSHO_HOST GONGSHO_PORT GONGSHO_START_HEALTH_TIMEOUT GONGSHO_STOP_GRACE GONGSHO_MIGRATE_VERSION
+unset GONGSHO_HOME GONGSHO_SCHEME GONGSHO_HOST GONGSHO_PORT GONGSHO_START_HEALTH_TIMEOUT GONGSHO_STOP_GRACE GONGSHO_MIGRATE_VERSION GONGSHO_PNPM_VERSION
 F=$(mktemp -d)
 trap 'rm -rf "$F"' EXIT
 mkdir -p "$F/tools" "$F/templates/goa-api" "$F/templates/react-ui" \
@@ -60,7 +60,7 @@ expect_rc_grep() { # <label> <want-rc> <pattern> <verb> [args...]
 }
 
 # --- help ---
-for _s in create build deploy retire start stop restart status dev-up dev-down check e2e refresh-spec migrate template-check cache-warm startup; do
+for _s in create build deploy retire start stop restart status dev-up dev-down check e2e refresh-spec migrate template-check cache-warm startup install pnpm; do
     expect_rc_grep "$_s --help" 0 "usage: tools/$_s" "$_s" --help
 done
 
@@ -72,7 +72,7 @@ expect_rc "create unknown template" 2 create acme/shop/new-9 --template nope
 expect_rc "create id-like path" 2 create acme_shop_new-9 --template goa-api
 expect_rc "create short path" 2 create acme/shop
 expect_rc "create unknown flag" 2 create acme/shop/new-9 --template goa-api --bogus
-for _s in build deploy retire start stop restart status check; do
+for _s in build deploy retire start stop restart status check install; do
     expect_rc "$_s no args" 2 "$_s"
     expect_rc "$_s two args" 2 "$_s" a_b_c d_e_f
     expect_rc "$_s malformed" 2 "$_s" nope
@@ -99,9 +99,10 @@ expect_rc "build if-stale no id" 2 build --if-stale
 expect_rc "build if-stale unknown id" 1 build --if-stale acme_shop_nope-9
 expect_rc "cache-warm extra arg" 2 cache-warm bogus
 expect_rc "startup extra arg" 2 startup bogus
+expect_rc "pnpm no args" 2 pnpm
 
 # --- unknown deployments ---
-for _s in build deploy retire start stop restart status check migrate; do
+for _s in build deploy retire start stop restart status check migrate install; do
     expect_rc "$_s unknown id" 1 "$_s" acme_shop_nope-9
 done
 expect_rc "e2e unknown id" 1 e2e acme_shop_nope-9
@@ -119,6 +120,7 @@ expect_rc_grep "dev-up api no binary" 1 "no binary" dev-up s9 acme_shop_api-1
 expect_rc_grep "dev-up ui no bundle" 1 "no dev bundle" dev-up s9 acme_shop_ui-1
 expect_rc_grep "dev-down unknown session" 0 "no dev routes" dev-down s9
 expect_rc_grep "migrate ui refused" 1 "no database" migrate acme_shop_ui-1
+expect_rc_grep "install api refused" 1 "nothing to install" install acme_shop_api-1
 expect_rc_grep "migrate no migrations dir" 1 "no migrations dir" migrate acme_shop_api-1
 mkdir -p "$F/apps/acme/shop/api-1/migrations"
 expect_rc_grep "migrate no up files" 1 "no *.up.sql" migrate acme_shop_api-1

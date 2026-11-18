@@ -18,6 +18,8 @@ leaking into app runtimes (the file is sourced with exports):
 - `GONGSHO_START_HEALTH_TIMEOUT` / `GONGSHO_STOP_GRACE` (default
   `10` / `5`, seconds) — supervisor timings.
 - `GONGSHO_MIGRATE_VERSION` (default `v4.20.1`) — golang-migrate pin.
+- `GONGSHO_PNPM_VERSION` (default `9.15.9`) — pnpm pin, vendored by
+  `cache-warm` (v9 line: v12 store locking fails under sandboxes).
 - `CADDY_STORAGE` (unset by default) — override only when the Caddy
   default store is not writable.
 

@@ -83,6 +83,9 @@ STOP_GRACE="${GONGSHO_STOP_GRACE:-5}"
 # golang-migrate pin (phase-plan: the migrate version pin lives in tools/).
 # Default resolved 2026-11-12 from proxy.golang.org @latest.
 MIGRATE_VERSION="${GONGSHO_MIGRATE_VERSION:-v4.20.1}"
+# pnpm pin (vendored by cache-warm into .cache/pnpm). Stays on the v9
+# line: v12's store-operation locking fails under sandboxed shells.
+PNPM_VERSION="${GONGSHO_PNPM_VERSION:-9.15.9}"
 
 # --- modules ---------------------------------------------------------------
 for _L_m in ids paths pin io caddy health proc render env; do

@@ -3,13 +3,14 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "packageManager": "pnpm@9.15.9",
   "engines": {
     "node": ">=22.18.0"
   },
   "scripts": {
     "dev": "vite",
-    "build": "npm run gen-client && tsc -b && vite build",
-    "build:dev": "npm run gen-client && tsc -b && vite build --sourcemap --minify false",
+    "build": "pnpm run gen-client && tsc -b && vite build",
+    "build:dev": "pnpm run gen-client && tsc -b && vite build --sourcemap --minify false",
     "gen-client": "sh scripts/gen-client.sh",
     "test-e2e": "playwright test",
     "preview": "vite preview"

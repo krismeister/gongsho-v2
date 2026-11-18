@@ -21,8 +21,9 @@ The verb exports, and specs never hardcode addresses:
 - UIs: Playwright Test, config `playwright.config.ts` with specs under
   `e2e/`, headless across browsers; coverage collected on the Chromium run
   via the Coverage API and converted to a line-level report in artifacts.
-  Browsers provision with `npx playwright install --with-deps` as a
-  documented prerequisite.
+  Browsers provision with `pnpm exec playwright install --with-deps`
+  (harness pnpm) as a documented prerequisite, honoring
+  `PLAYWRIGHT_BROWSERS_PATH` (the harness defaults it repo-local).
 
 ## Callers
 
