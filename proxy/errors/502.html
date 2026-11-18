@@ -1,0 +1,137 @@
+<!doctype html>
+<!-- gongsho global error page: proxy/errors/502.html (committed, shared).
+     Wiring (not yet applied): handle_errors + catch-all in proxy/Caddyfile. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>502 — gongsho</title>
+<style>
+:root {
+  --ink: #16181d;
+  --muted: #3f4752;
+  --line: #e2e5ea;
+  --bg: #ffffff;
+  --wash: #f1f3f5;
+  --accent: #1a7f37;
+  --font-display: "Space Grotesk", "Avenir Next", "Segoe UI", sans-serif;
+  --font-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", Menlo, monospace;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+}
+.bar { border-bottom: 1px solid var(--line); }
+.bar-inner {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 14px 24px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  text-transform: lowercase;
+}
+.bar-inner .dot { color: var(--accent); }
+main {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 48px 24px 64px;
+}
+.label {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--muted);
+}
+.code {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-size: 76px;
+  line-height: 1;
+  margin: 12px 0 4px;
+}
+h1 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-size: 28px;
+  line-height: 1.25;
+  margin: 0 0 12px;
+}
+p { margin: 0 0 12px; max-width: 60ch; }
+.pathbox {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  background: var(--wash);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin: 16px 0;
+  overflow-wrap: anywhere;
+}
+ul { margin: 12px 0; padding-left: 22px; max-width: 60ch; }
+li { margin-bottom: 6px; }
+li code, p code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  background: var(--wash);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 1px 5px;
+}
+.actions { margin-top: 24px; }
+.back {
+  display: inline-block;
+  background: var(--ink);
+  color: #fff;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 15px;
+  padding: 9px 18px;
+  border-radius: 8px;
+}
+.back:hover { background: #2a2f37; }
+.hint { margin-top: 14px; font-size: 14px; color: var(--muted); }
+footer {
+  border-top: 1px solid var(--line);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--muted);
+}
+footer div { max-width: 720px; margin: 0 auto; padding: 12px 24px; }
+</style>
+</head>
+<body>
+<header class="bar"><div class="bar-inner">gongsho<span class="dot"> ●</span></div></header>
+<main>
+  <div class="label">error 502</div>
+  <div class="code">502</div>
+  <h1>Upstream unavailable.</h1>
+  <p>The API behind this route is not answering. Its process is down or its
+  socket is missing. This only happens on API routes — static UI bundles
+  never 502.</p>
+  <div class="pathbox">requested: <span id="req-path">…</span></div>
+  <ul>
+    <li>The API was never started on this machine.</li>
+    <li>The process crashed or was stopped; the socket is gone.</li>
+    <li>The checkout moved, so the socket path baked into the proxy stanza is stale.</li>
+  </ul>
+  <div class="actions">
+    <a class="back" href="javascript:history.back()">Go back</a>
+    <p class="hint">Operator? Run <code>tools/status &lt;id&gt;</code>, then
+    <code>tools/start &lt;id&gt;</code> or <code>tools/startup</code> to bring it back.</p>
+  </div>
+</main>
+<footer><div>gongsho proxy · localhost:8181 · 502</div></footer>
+<script>
+document.getElementById('req-path').textContent =
+  window.location.pathname + window.location.search;
+</script>
+</body>
+</html>

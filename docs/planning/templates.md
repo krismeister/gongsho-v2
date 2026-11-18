@@ -65,7 +65,7 @@ route; E2E env names; Hey per-spec loop with committed output; atomic
 `bin/` promotion; `*.db` ignored; dev bundle profile (maps on, minify
 off); demo composition; retire archives data alongside; backup suffix
 `.bak-<timestamp>`; api binary named `api`; `http://` site scheme;
-unmatched-200 contract; trailing-slash rule; injected env set
+trailing-slash rule; injected env set
 (`DB_PATH`, `SOCKET_PATH`, `DEPLOYMENT_ID`, `TEMPLATE`,
 `TEMPLATE_VERSION`); Hey flags win over config file; `.example.env`
 replaces `app.env`; UI `.example.env` comments-only; `/info` serves id

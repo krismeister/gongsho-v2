@@ -61,10 +61,9 @@ each through Caddy. Idempotent — safe to run anytime. Ends with:
 ## Verify
 
 ```sh
-curl http://localhost:8181/
+curl -s -o /dev/null -w "%{http_code}\n" http://localhost:8181/
 ```
 
-Unmatched paths return `200` with an empty body — that empty `200` is
-the healthy signal. With deployments present, each serves at
+Any HTTP status there means the proxy is up. With deployments present, each serves at
 `http://localhost:8181/<team>/<project>/<deployment>/` (trailing slash
 required).

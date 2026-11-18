@@ -31,7 +31,7 @@ need_cmd curl "curl (documented prerequisite)"
 need_yq
 
 # --- Caddy: probe, start only if down ---
-if curl -sf --max-time 2 "$CADDY_ORIGIN/" >/dev/null 2>&1; then
+if curl -s -o /dev/null --max-time 2 "$CADDY_ORIGIN/" >/dev/null 2>&1; then
     log "caddy already up ($CADDY_ORIGIN)"
 else
     need_cmd caddy "Caddy (documented prerequisite)"
@@ -39,11 +39,11 @@ else
     ( cd "$REPO_ROOT" && caddy start --config proxy/Caddyfile --adapter caddyfile ) || die "caddy start failed"
     _i=0
     while [ "$_i" -lt 10 ]; do
-        curl -sf --max-time 2 "$CADDY_ORIGIN/" >/dev/null 2>&1 && break
+        curl -s -o /dev/null --max-time 2 "$CADDY_ORIGIN/" >/dev/null 2>&1 && break
         _i=$((_i + 1))
         sleep 1
     done
-    curl -sf --max-time 2 "$CADDY_ORIGIN/" >/dev/null 2>&1 || die "caddy did not come up at $CADDY_ORIGIN"
+    curl -s -o /dev/null --max-time 2 "$CADDY_ORIGIN/" >/dev/null 2>&1 || die "caddy did not come up at $CADDY_ORIGIN"
     log "caddy up ($CADDY_ORIGIN)"
 fi
 unset _i

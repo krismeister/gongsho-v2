@@ -9,6 +9,30 @@ directive behavior below follows the Caddy docs cited in `../planning/templates.
 :8181 {
 	import deployments/*
 	import dev.d/*
+
+	handle_errors {
+		@notfound expression {http.error.status_code} == 404
+		handle @notfound {
+			rewrite * /404.html
+			root * proxy/errors
+			file_server
+		}
+		@badgateway expression {http.error.status_code} == 502
+		handle @badgateway {
+			rewrite * /502.html
+			root * proxy/errors
+			file_server
+		}
+		handle {
+			rewrite * /error.html
+			root * proxy/errors
+			file_server
+		}
+	}
+
+	handle {
+		error 404
+	}
 }
 ```
 
@@ -75,7 +99,5 @@ reload after each change. Logging stays default in v1 (assumed).
 ## Edge behavior (verified contract)
 
 - The bare `:8181` address carries no hostname, so automatic HTTPS provisions nothing and the server stays plain HTTP on 8181 only (verified with `caddy adapt`). Prefer this over adding hostnames: a hostname-bearing site would need an `http://` prefix to suppress automatic HTTPS.
-- Unmatched paths return 200 with an empty body, not 404. All verification
-  asserts on body content, never status alone.
 - Deployment roots require the trailing slash: `/<path>/` proxies, `/<path>`
   does not. Template READMEs must state this.

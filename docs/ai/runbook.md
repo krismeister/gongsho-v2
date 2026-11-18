@@ -23,7 +23,7 @@ description: Machine facts every agent needs.
 
 Scratch checkouts set `GONGSHO_PORT=8281` plus an admin block in their
 Caddyfile and assert both ports free first. Machine ports belong to the
-regular runner alone. Unmatched paths return `200` empty; deployment
+regular runner alone. Deployment
 roots need the trailing slash.
 
 ## Toolchains

@@ -1,4 +1,28 @@
 :8181 {
 	import deployments/*
 	import dev.d/*
+
+	handle_errors {
+		@notfound expression {http.error.status_code} == 404
+		handle @notfound {
+			rewrite * /404.html
+			root * proxy/errors
+			file_server
+		}
+		@badgateway expression {http.error.status_code} == 502
+		handle @badgateway {
+			rewrite * /502.html
+			root * proxy/errors
+			file_server
+		}
+		handle {
+			rewrite * /error.html
+			root * proxy/errors
+			file_server
+		}
+	}
+
+	handle {
+		error 404
+	}
 }
