@@ -57,7 +57,7 @@ validate_template_name() { # <name> — dies unless the template exists
     case $1 in
         "" | *[!a-z0-9-]*) usage "malformed template name '$1'" ;;
     esac
-    [ -f "$REPO_ROOT/templates/$1/.gongsho-tpl.yaml" ] || usage "unknown template '$1' (want goa-api or react-ui)"
+    [ -f "$REPO_ROOT/templates/$1/.gongsho-tpl.yaml" ] || usage "unknown template '$1' (want goa-api, langchain-api or react-ui)"
 }
 
 id_to_path() { printf '%s' "$1" | tr '_' '/'; }      # acme_shop_api-1 -> acme/shop/api-1

@@ -23,7 +23,8 @@ Hermetic run: mint a fresh session, build every deployment, build UI dev
 bundles, bring up dev routes, export the e2e environment contract, run
 the per-template runners (APIs first, then UIs), tear down always.
 Failures preserve run/<session>/ and print its path; successes clean
-fully. Include every API a tested UI consumes.
+fully. Include every API a tested UI consumes. Node API and UI
+deployments need install first.
 
 Prerequisites: Go/Node.js toolchains, Playwright browsers (UIs),
 Caddy running, yq, curl.
@@ -97,7 +98,11 @@ for _id in $_ids; do
         log "running API e2e for '$_id'"
         _elog="$(artifacts_dir "$_session")/$_id.e2e.log"
         _rc=0
-        ( cd "$(app_dir "$_id")" && go test ./e2e/ ) >"$_elog" 2>&1 || _rc=$?
+        if [ "$_t" = "goa-api" ]; then
+            ( cd "$(app_dir "$_id")" && go test ./e2e/ ) >"$_elog" 2>&1 || _rc=$?
+        else
+            ( cd "$(app_dir "$_id")" && sh "$_d/pnpm" run test-e2e ) >"$_elog" 2>&1 || _rc=$?
+        fi
         cat -- "$_elog"
         if [ "$_rc" -eq 0 ]; then
             log "API e2e passed for '$_id'"

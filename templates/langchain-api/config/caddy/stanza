@@ -1,0 +1,5 @@
+handle_path /{{PATH}}/* {
+	reverse_proxy unix//{{REPO}}/proxy/sockets/{{ID}}.sock {
+		header_up Host localhost
+	}
+}

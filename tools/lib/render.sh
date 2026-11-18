@@ -8,7 +8,7 @@
 # Stable stanzas are derived state (gitignored): every verb re-renders from
 # the deployment's template plus pin before reloading Caddy, so a missing
 # or stale file heals instead of failing. Recreation keys off the template
-# name (goa-api, react-ui); unknown types are refused — see
+# name (goa-api, langchain-api, react-ui); unknown types are refused — see
 # ensure_proxy_file. dev-up never renders from the template directly:
 # render_dev_stanza ensures the stable file first, then derives the dev
 # stanza from it via the asserted rewrites below.
@@ -107,7 +107,7 @@ write_gen_config() { # <dest> <ui-app-dir> <prefix>
         _id_shape_ok "$_L_api" || _wgc_die "snapshot '$_L_spec' names malformed API ID '$_L_api'"
         deployment_exists "$_L_api" || _wgc_die "dangling snapshot '$_L_spec' (no deployment '$_L_api')"
         _L_pt=$(pin_template "$_L_api")
-        [ "$_L_pt" = "goa-api" ] || _wgc_die "snapshot '$_L_spec' refers to non-API deployment '$_L_api'"
+        [ "$(template_kind "$_L_pt")" = "api" ] || _wgc_die "snapshot '$_L_spec' refers to non-API deployment '$_L_api'"
         printf '%s %s\n' "$_L_api" "$_L_prefix/$(id_to_path "$_L_api")" >>"$_L_list"
     done
     if [ -s "$_L_list" ]; then

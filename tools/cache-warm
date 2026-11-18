@@ -81,4 +81,9 @@ cp -- "$REPO_ROOT/templates/react-ui/app/package.json" "$REPO_ROOT/templates/rea
 ( cd "$_ft" && "$_pnpm_bin" fetch --store-dir "$REPO_ROOT/.cache/pnpm/store" ) || { rm -rf -- "$_ft"; die "pnpm fetch failed (see above)"; }
 rm -rf -- "$_ft"
 log "UI dependencies prefetched to the shared store"
+_ft=$(mktemp -d) || die "cannot create temp dir"
+cp -- "$REPO_ROOT/templates/langchain-api/app/package.json" "$REPO_ROOT/templates/langchain-api/app/pnpm-lock.yaml" "$_ft/" || { rm -rf -- "$_ft"; die "cannot stage langchain-api manifests"; }
+( cd "$_ft" && "$_pnpm_bin" fetch --store-dir "$REPO_ROOT/.cache/pnpm/store" ) || { rm -rf -- "$_ft"; die "pnpm fetch failed (see above)"; }
+rm -rf -- "$_ft"
+log "langchain-api dependencies prefetched to the shared store"
 log "cache warm"

@@ -1,7 +1,8 @@
 # Spec handoff (API to UI)
 
-- Emission: each API build normalizes its generated OpenAPI to
-  `apps/<api>/gen/openapi.json` and serves it at a stable route. Generated
+- Emission: each API build normalizes its OpenAPI to
+  `apps/<api>/gen/openapi.json` and serves it at a stable route. Goa APIs
+  generate it; `langchain-api` commits it and serves it verbatim. One
   truth, never a second dictation.
 - Snapshots: each UI keeps `apps/<ui>/spec/<api-id>.openapi.json`, one file
   per consumed API. Presence declares consumption; each UI upgrades

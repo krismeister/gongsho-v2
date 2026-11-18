@@ -30,7 +30,7 @@ validate_pin "$_api"
 _ut=$(pin_template "$_ui")
 [ "$_ut" = "react-ui" ] || die "'$_ui' is not a UI deployment"
 _at=$(pin_template "$_api")
-[ "$_at" = "goa-api" ] || die "'$_api' is not an API deployment"
+[ "$(template_kind "$_at")" = "api" ] || die "'$_api' is not an API deployment"
 _src="$(app_dir "$_api")/gen/openapi.json"
 [ -f "$_src" ] || die "API '$_api' has no generated spec (run: build $_api)"
 _dest="$(app_dir "$_ui")/spec/$_api.openapi.json"

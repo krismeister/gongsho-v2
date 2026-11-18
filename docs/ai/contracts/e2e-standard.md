@@ -15,9 +15,11 @@ The verb exports, and specs never hardcode addresses:
 
 ## Runners (per template)
 
-- APIs: `go test ./e2e/` with stdlib HTTP client plus testify (`require` for
-  setup, `assert` for flows) against the `/dev/` route — testing prefix
-  behavior too, not just handlers.
+- APIs: per-template runner against the `/dev/` route — testing prefix
+  behavior too, not just handlers. `goa-api`: `go test ./e2e/` with
+  stdlib HTTP client plus testify (`require` for setup, `assert` for
+  flows). `langchain-api`: `pnpm run test-e2e` (node:test over the same
+  env contract).
 - UIs: Playwright Test, config `playwright.config.ts` with specs under
   `e2e/`, headless across browsers; coverage collected on the Chromium run
   via the Coverage API and converted to a line-level report in artifacts.

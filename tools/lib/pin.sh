@@ -43,8 +43,9 @@ template_kind() { # <template> — echoes api|ui; dies on anything else
     validate_template_name "$1"
     case $1 in
         goa-api) printf 'api' ;;
+        langchain-api) printf 'api' ;;
         react-ui) printf 'ui' ;;
-        *) die "unknown template '$1' (want goa-api or react-ui)" ;;
+        *) die "unknown template '$1' (want goa-api, langchain-api or react-ui)" ;;
     esac
 }
 

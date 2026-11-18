@@ -14,9 +14,10 @@ _d=$(CDPATH= cd -- "$_d" && pwd) || { echo "error: cannot resolve tools dir (inv
 print_help() { cat <<'EOF'
 usage: tools/install <id>
 
-Install a UI deployment's node dependencies via the vendored pnpm
-into node_modules (shared repo-local store). APIs have nothing to
-install. Idempotent: re-running completes or verifies the install.
+Install a deployment's node dependencies via the vendored pnpm
+into node_modules (shared repo-local store). UIs and langchain-api
+APIs install; goa APIs have nothing to install. Idempotent:
+re-running completes or verifies the install.
 
 Prerequisites: provisioned pnpm (tools/cache-warm).
 EOF
@@ -28,6 +29,8 @@ _id=$1
 validate_id "$_id"
 validate_pin "$_id"
 _kind=$(template_kind "$(pin_template "$_id")")
-[ "$_kind" = "ui" ] || die "'$_id' is an API deployment (nothing to install)"
+if [ "$_kind" != "ui" ] && [ "$(pin_template "$_id")" != "langchain-api" ]; then
+    die "'$_id' is a goa API deployment (nothing to install)"
+fi
 ( cd "$(app_dir "$_id")" && sh "$_d/pnpm" install ) || die "pnpm install failed for '$_id' (see above)"
 log "installed node_modules for '$_id'"

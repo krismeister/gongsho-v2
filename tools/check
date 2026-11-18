@@ -85,7 +85,7 @@ else
         _id_shape_ok "$_api" || die "snapshot '$_spec' names malformed API ID '$_api'"
         deployment_exists "$_api" || die "dangling snapshot '$_spec' (no deployment '$_api'; remove the snapshot or restore the API)"
         _pt=$(pin_template "$_api")
-        [ "$_pt" = "goa-api" ] || die "snapshot '$_spec' refers to non-API deployment '$_api'"
+        [ "$(template_kind "$_pt")" = "api" ] || die "snapshot '$_spec' refers to non-API deployment '$_api'"
         _cur="$(app_dir "$_api")/gen/openapi.json"
         [ -f "$_cur" ] || die "API '$_api' has no generated spec (run: build $_api)"
         if ! cmp -s -- "$_spec" "$_cur"; then

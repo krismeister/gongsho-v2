@@ -9,6 +9,8 @@ proxy/deployments/
 run/
 # UI dependencies.
 node_modules/
+# TypeScript emit dirs (build output, never scaffolded or committed).
+dist/
 # Local Go caches (harness fallback when the default cache is unwritable).
 .cache/
 # Local environment values (root and per-app). Examples stay committed.
