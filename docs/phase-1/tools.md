@@ -17,7 +17,8 @@ alongside Go, Node, Caddy).
   anything else. UI builds regen Hey API clients from snapshots first, but
   only after the freshness check passes, so regen input is pinned and the
   write is normally a no-op; unexpected diffs surface in git status. Never
-  touches proxy, DBs, or processes.
+  touches proxy, DBs, or processes. `--if-stale` exits 0 without building
+  when the output is newer than every source.
 - `deploy <id>` — build, ensure proxy file, reload, migrate plus restart
   (APIs) or bundle swap (UIs), verify through Caddy. Restores DB backup and
   aborts loudly on failure.
@@ -33,7 +34,14 @@ alongside Go, Node, Caddy).
 - `e2e <id>...` — hermetic browser run per the e2e standard.
 - `refresh-spec <ui-id> <api-id>` — explicit snapshot copy. Never automatic.
 - `migrate <id>` — backup (stable only), migrate up, verify version. Read by
-  deploy and dev flows; runnable standalone for inspection.
+  deploy and dev flows; runnable standalone for inspection. Prefers a
+  prebuilt `tools/bin/migrate` matching the pin, else `go run`.
+- `cache-warm` — download template Go modules, compile the pinned
+  migrate binary into `tools/bin/` (plus version sidecar), compile the
+  pinned goa CLI for build-cache warmth. Idempotent.
+- `startup` — ensure Caddy, run `cache-warm`, boot every deployment
+  (APIs first): build when stale, start APIs unless running, verify
+  all through Caddy. Idempotent; collects per-deployment failures.
 
 ## System-lane verbs (human-driven)
 

@@ -105,7 +105,7 @@ runtime layout), `e2e-standard.md` (env contract plus runners),
 - `bin/<team>/<project>/<deployment>/` — gitignored build output: API binary,
   UI bundle (what Caddy serves)
 - `proxy/`
-  - `Caddyfile` — localhost site plus `import deployments/*` and `import dev.d/*`
+  - `Caddyfile` — one site plus `import deployments/*` and `import dev.d/*`
   - `deployments/` — stable stanzas, one file per deployment, committed in v1
     (assumed)
   - `dev.d/` — ephemeral `/dev/<session>/` stanzas, gitignored
@@ -151,7 +151,7 @@ runtime layout), `e2e-standard.md` (env contract plus runners),
 - ID rules: segments allow lowercase, digits, hyphens only, never underscores,
   so the underscore join splits unambiguously; no team named `dev` (reserves
   the `/dev/` route prefix). Validation lives in `lib.sh`; no registry.
-- Main `Caddyfile`: one localhost site containing only the two import lines.
+- Main `Caddyfile`: one site containing only the two import lines.
 - API stanza (rendered from `templates/goa-api/config/caddy/stanza`):
   `handle_path` matching the deployment path and stripping the prefix
   (assumed), `reverse_proxy` to the deployment socket with an explicit
@@ -170,9 +170,10 @@ runtime layout), `e2e-standard.md` (env contract plus runners),
 ## Tools and flows
 
 - Project lane (human now, agents later): create, build, deploy, check, e2e,
-  refresh-spec, dev-up, dev-down, start, stop, restart, status, retire
-  (assumed in v1). System lane (human-driven): template-check; template-new
-  skipped and version bumps later (both assumed).
+  refresh-spec, dev-up, dev-down, start, stop, restart, status, retire,
+  cache-warm, startup (assumed in v1). System lane (human-driven):
+  template-check; template-new skipped and version bumps later
+  (both assumed).
 - create: validate ID, scaffold app, write pin, create empty DB plus migrate
   to latest (constants ride the first migrations — assumed over a binary
   template DB), render proxy file, reload Caddy. Verb name `create` assumed.
@@ -291,7 +292,8 @@ env set (`DB_PATH`, `SOCKET_PATH`, `DEPLOYMENT_ID`, `TEMPLATE`,
 `TEMPLATE_VERSION`); Hey flags win over config file; `.example.env` replaces
 `app.env`; UI `.example.env` comments-only; `/info` serves id plus template
 plus version; `GONGSHO_*` machine keys; scratch ports 8281/2020; Go-cache
-fallback plus `-buildvcs=false`; pin-fidelity create check.
+fallback plus `-buildvcs=false`; tidy self-heals scaffolds (no pin-fidelity
+byte-compare on the create path per the staleness rule).
 
 ## Deferred
 

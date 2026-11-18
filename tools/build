@@ -10,20 +10,31 @@ esac
 . "$_d/lib.sh"
 
 print_help() { cat <<'EOF'
-usage: tools/build <id>
+usage: tools/build [--if-stale] <id>
 
 Compile app source to mirrored bin/ output with atomic promotion.
 APIs regenerate gen/ plus the normalized OpenAPI first; UIs fail on
 snapshot drift before regenerating clients and bundling. Never touches
-proxy, DBs, or processes.
+proxy, DBs, or processes. With --if-stale, exit 0 without building
+when the output is newer than every source (drift checks included in
+the skip).
 
 Prerequisites: Go toolchain (APIs), Node.js with node_modules installed (UIs), yq.
 EOF
 }
 
 case "${1:-}" in -h|--help) print_help; exit 0 ;; esac
-[ $# -eq 1 ] || usage "want exactly one deployment ID"
-_id=$1
+_stale_only=0
+_id=""
+while [ $# -gt 0 ]; do
+    case $1 in
+        --if-stale) _stale_only=1; shift ;;
+        --*) usage "unknown flag '$1'" ;;
+        *) [ -z "$_id" ] || usage "unexpected argument '$1' (want exactly one ID)"
+            _id=$1; shift ;;
+    esac
+done
+[ -n "$_id" ] || usage "missing deployment ID"
 validate_id "$_id"
 validate_pin "$_id"
 _t=$(pin_template "$_id")
@@ -31,6 +42,32 @@ _kind=$(template_kind "$_t")
 _path=$(id_to_path "$_id")
 _app=$(app_dir "$_id")
 _bin=$(bin_dir "$_id")
+
+_output_fresh() { # 0 when build output exists and is newer than every source
+    case $_kind in
+        api)
+            [ -x "$_bin/api" ] || return 1
+            # .env is runtime input, not build input.
+            if find "$_app" -path "$_app/.env" -prune -o -type f -newer "$_bin/api" -print | grep -q .; then
+                return 1
+            fi
+            ;;
+        ui)
+            [ -f "$_bin/index.html" ] || return 1
+            # node_modules holds installed deps (not sources); .env is runtime.
+            if find "$_app" \( -path "$_app/node_modules" -o -path "$_app/.env" \) -prune -o -type f -newer "$_bin/index.html" -print | grep -q .; then
+                return 1
+            fi
+            ;;
+        *) die "no freshness rule for kind '$_kind'" ;;
+    esac
+    return 0
+}
+
+if [ "$_stale_only" -eq 1 ] && _output_fresh; then
+    log "build up to date for '$_id'"
+    exit 0
+fi
 
 if [ "$_kind" = "api" ]; then
     need_cmd go "Go toolchain (documented prerequisite)"

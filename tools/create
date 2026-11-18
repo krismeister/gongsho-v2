@@ -72,7 +72,6 @@ if [ "$_kind" = "api" ]; then
     fi
     cp -- "$_app/.example.env" "$_app/.env" || die "cannot write .env"
     need_cmd go "Go toolchain (documented prerequisite)"
-    need_cmd sha256sum "hashing"
     _modline=$(cd "$_app" && go list -m 2>&1) || die "go list failed: $_modline"
     ( cd "$_app" && go run goa.design/goa/v3/cmd/goa gen "$_modline/design" ) || die "goa gen failed (see above)"
     [ -f "$_app/gen/http/openapi3.json" ] || die "goa gen emitted no gen/http/openapi3.json"
@@ -80,9 +79,9 @@ if [ "$_kind" = "api" ]; then
     cp -- "$_app/gen/http/openapi3.json" "$_gtmp" || die "spec normalize copy failed"
     atomic_mv "$_gtmp" "$_app/gen/openapi.json"
     ( cd "$_app" && go mod tidy ) || die "go mod tidy failed (see above)"
-    _wantmod=$(sed "s|gongsho/template/goa-api|gongsho/$_path|g" "$_src/go.mod" | sha256sum | cut -d' ' -f1)
-    [ "$_wantmod" = "$(sha256_file "$_app/go.mod")" ] || die "go.mod is not tidy-complete (template pins incomplete)"
-    [ "$(sha256_file "$_src/go.sum")" = "$(sha256_file "$_app/go.sum")" ] || die "go.sum is not tidy-complete (template pins incomplete)"
+    # NOTE: tidy self-heals the scaffold's pins; per the staleness rule
+    # (manifest versions only) there is no file-content drift verdict on
+    # this path — template validity belongs to template-check.
     log "scaffolded API (module $_mod, gen/ generated)"
 else
     if grep -rq -F -e '{{ID}}' -e '{{PATH}}' -e '${ID}' -e '${PATH}' "$_app"; then

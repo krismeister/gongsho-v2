@@ -102,15 +102,21 @@ else
     bad "create reload failure (exit $_rc: $_out)"
 fi
 
-# --- create API pin-fidelity negative (tampered template + stub go) ---
-# The stub stands in for go through scaffold: list prints a module path,
-# run fakes goa gen output, tidy simulates completing incomplete pins.
+# --- create API self-heal (tampered template + stub go) ---
+# Tidy completes the tampered pins in place (no pin-fidelity verdict on
+# this path per the staleness rule); the stub refuses migrate-shaped
+# calls so the run then fails at the migrate step hermetically.
 mkdir -p "$F/cstubbin"
 cat >"$F/cstubbin/go" <<'SHEOF'
 #!/bin/sh
 set -eu
 if [ "$1" = "list" ]; then echo "gongsho/stub/mod"; exit 0; fi
-if [ "$1" = "run" ]; then mkdir -p gen/http; printf '{"openapi":"3.0.0"}' >gen/http/openapi3.json; exit 0; fi
+if [ "$1" = "run" ]; then
+    case $2 in
+        goa.design/*) mkdir -p gen/http; printf '{"openapi":"3.0.0"}' >gen/http/openapi3.json; exit 0 ;;
+        *) echo "stub-go-create: migrate not emulated" >&2; exit 1 ;;
+    esac
+fi
 if [ "$1" = "mod" ] && [ "$2" = "tidy" ]; then printf '\n// stub-tidy completion\n' >>go.mod; exit 0; fi
 echo "stub-go-create: wrong call $*" >&2; exit 1
 SHEOF
@@ -121,10 +127,11 @@ PATH="$F/cstubbin:$PATH"
 runv create tamper/shop/api-9 --template goa-api
 PATH=$_oldpath
 unset _oldpath
-if [ "$_rc" = "1" ] && printf '%s' "$_out" | grep -q -F "not tidy-complete"; then
-    ok "create tampered pins die"
+if [ "$_rc" = "1" ] && printf '%s' "$_out" | grep -q -F "migrate step failed" \
+    && grep -q -F "stub-tidy completion" "$F/apps/tamper/shop/api-9/go.mod"; then
+    ok "create tampered pins self-heal"
 else
-    bad "create tampered pins die (exit $_rc: $_out)"
+    bad "create tampered pins self-heal (exit $_rc: $_out)"
 fi
 
 # --- refresh-spec positive ---
@@ -363,11 +370,97 @@ PYEOF
     else
         bad "migrate dev no backup (exit $_rc: $_out)"
     fi
+    mkdir -p "$F/tools/bin"
+    cat >"$F/tools/bin/migrate" <<'PYEOF'
+#!/usr/bin/env python3
+# Fake prebuilt migrate: up prints a marker, version prints 9.
+import sys
+cmd = sys.argv[-1] if len(sys.argv) > 1 else ""
+if cmd == "up":
+    print("9/u fake-prebuilt")
+elif cmd == "version":
+    print("9")
+else:
+    sys.stderr.write("fake-prebuilt: wrong call\n")
+    sys.exit(1)
+PYEOF
+    chmod +x "$F/tools/bin/migrate"
+    printf 'v4.20.1\n' >"$F/tools/bin/migrate.version"
+    mkdir -p "$F/failbin"
+    printf '#!/bin/sh\necho "go-stub: should not run under prebuilt" >&2\nexit 1\n' >"$F/failbin/go"
+    chmod +x "$F/failbin/go"
+    PATH="$F/failbin:$PATH"
+    _mig acme_shop_api-1
+    if [ "$_rc" = "0" ] && printf '%s' "$_out" | grep -q -F "migrated to version 9"; then
+        ok "migrate prefers prebuilt"
+    else
+        bad "migrate prefers prebuilt (exit $_rc: $_out)"
+    fi
+    PATH="$F/stubbin:$_oldpath"
+    printf 'v0.0.0-stale\n' >"$F/tools/bin/migrate.version"
+    _mig acme_shop_api-1
+    if [ "$_rc" = "0" ] && printf '%s' "$_out" | grep -q -F "migrated to version 5"; then
+        ok "migrate stale pin falls back"
+    else
+        bad "migrate stale pin falls back (exit $_rc: $_out)"
+    fi
+    rm "$F/tools/bin/migrate.version"
+    _mig acme_shop_api-1
+    if [ "$_rc" = "0" ] && printf '%s' "$_out" | grep -q -F "migrated to version 5"; then
+        ok "migrate missing sidecar falls back"
+    else
+        bad "migrate missing sidecar falls back (exit $_rc: $_out)"
+    fi
+    rm -rf "$F/tools/bin" "$F/failbin"
     PATH=$_oldpath
     unset _oldpath
 else
     printf 'SKIP: no python3 for migrate-stub cases\n'
 fi
+
+# --- cache-warm via a go stub (harness logic only; real compile proven in loop) ---
+mkdir -p "$F/cwbin"
+cat >"$F/cwbin/go" <<'SHEOF'
+#!/bin/sh
+set -eu
+if [ "$1" = "mod" ]; then exit 0; fi
+if [ "$1" = "list" ]; then echo "goa.design/goa/v3 v9.9.9-cwtest"; exit 0; fi
+if [ "$1" = "install" ]; then
+    case "$*" in
+        *cmd/migrate*) mkdir -p "$GOBIN"; printf '#!/bin/sh\nexit 0\n' >"$GOBIN/migrate"; chmod +x "$GOBIN/migrate" ;;
+    esac
+    exit 0
+fi
+echo "stub-go-cachewarm: wrong call $*" >&2; exit 1
+SHEOF
+chmod +x "$F/cwbin/go"
+_cw_oldpath=$PATH
+PATH="$F/cwbin:$PATH"
+runv cache-warm
+if [ "$_rc" = "0" ] && [ -x "$F/tools/bin/migrate" ] \
+    && [ "$(cat "$F/tools/bin/migrate.version")" = "v4.20.1" ]; then
+    ok "cache-warm builds migrate"
+else
+    bad "cache-warm builds migrate (exit $_rc: $_out)"
+fi
+runv cache-warm
+if [ "$_rc" = "0" ] && printf '%s' "$_out" | grep -q -F "already built"; then
+    ok "cache-warm skips when warm"
+else
+    bad "cache-warm skips when warm (exit $_rc: $_out)"
+fi
+PATH=$_cw_oldpath
+unset _cw_oldpath
+rm -rf "$F/tools/bin"
+
+# --- build --if-stale skips fresh outputs (stale paths proven in loop) ---
+touch "$F/bin/acme/shop/api-1/api"
+expect_rc_grep "build if-stale api fresh" 0 "up to date" build --if-stale acme_shop_api-1
+mkdir -p "$F/bin/acme/shop/ui-1/assets"
+printf '<html>ui</html>' >"$F/bin/acme/shop/ui-1/index.html"
+printf 'x' >"$F/bin/acme/shop/ui-1/assets/app.js"
+touch "$F/bin/acme/shop/ui-1/index.html" "$F/bin/acme/shop/ui-1/assets/app.js"
+expect_rc_grep "build if-stale ui fresh" 0 "up to date" build --if-stale acme_shop_ui-1
 
 # --- retire API positive (last: archives the api deployment) ---
 mkdir -p "$F/proxy/deployments"
@@ -381,6 +474,42 @@ if [ ! -e "$F/apps/acme/shop/api-1" ] && [ -e "$_arc2" ] && [ -e "$_arc3" ] \
     ok "retire api archived"
 else
     bad "retire api archived"
+fi
+
+# --- startup against an isolated fake root (per-deployment boot proven in loop) ---
+if command -v python3 >/dev/null 2>&1; then
+    _S2=$(mktemp -d)
+    mkdir -p "$_S2/tools" "$_S2/templates/goa-api/app" "$_S2/proxy"
+    cp "$R/tools/lib.sh" "$_S2/tools/lib.sh"
+    printf 'module stub\n\ngo 1.23\n' >"$_S2/templates/goa-api/app/go.mod"
+    printf '' >"$_S2/templates/goa-api/app/go.sum"
+    _o_repo=$GONGSHO_REPO; _o_home=$GONGSHO_HOME
+    export GONGSHO_REPO=$_S2 GONGSHO_HOME=$_S2 GONGSHO_PORT=18281
+    _oldpath2=$PATH; PATH="$F/cwbin:$PATH"
+    python3 -m http.server 18281 --directory "$_S2" >/dev/null 2>&1 & _srv=$!
+    sleep 1
+    runv startup
+    kill $_srv 2>/dev/null || true
+    wait $_srv 2>/dev/null || true
+    PATH=$_oldpath2; unset _oldpath2
+    if [ "$_rc" = "0" ] && printf '%s' "$_out" | grep -q -F "no deployments to boot"; then
+        ok "startup caddy-up no deployments"
+    else
+        bad "startup caddy-up no deployments (exit $_rc: $_out)"
+    fi
+    export GONGSHO_PORT=18282
+    runv startup
+    if [ "$_rc" = "1" ] && printf '%s' "$_out" | grep -q -F "did not come up"; then
+        ok "startup caddy-down fails loud"
+    else
+        bad "startup caddy-down fails loud (exit $_rc: $_out)"
+    fi
+    export GONGSHO_REPO=$_o_repo GONGSHO_HOME=$_o_home
+    unset GONGSHO_PORT
+    unset _o_repo _o_home
+    rm -rf "$_S2" "$F/cwbin"
+else
+    printf 'SKIP: no python3 for startup cases\n'
 fi
 
 printf '%s\npass=%d fail=%d\n' '---' "$pass" "$fail"

@@ -27,7 +27,8 @@ $GONGSHO_HOME/
 │   │   ├── dev.d/ (g)
 │   │   └── sockets/ (g) (sockets plus pidfiles)
 │   ├── run/ (g) (per-session scratch)
-│   └── tools/ (c) (*.sh verbs, lib.sh wrapper plus lib/ modules, tests/ suites)
+│   └── tools/ (c) (*.sh verbs, lib.sh wrapper plus lib/ modules, tests/
+│       suites; bin/ (g) prebuilt helper binaries)
 ├── apps/<team>/<project>/<deployment>/ * (deep agent working area)
 └── data/<team_project_deployment>/ (`app.db` per API) * (flat)
 ```

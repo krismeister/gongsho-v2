@@ -15,9 +15,10 @@ usage: tools/migrate [--dev <session>] <id>
 Backup (stable only), migrate up with pinned golang-migrate, verify the
 version, prune backups to three. Fresh databases migrate from zero with
 no backup. On migrate failure the backup is restored and the run aborts
-loudly. Dev databases migrate up with no backup.
+loudly. Dev databases migrate up with no backup. Prefers a prebuilt
+tools/bin/migrate matching the pin (built by cache-warm), else `go run`.
 
-Prerequisites: Go toolchain (runs the pinned migrate), yq.
+Prerequisites: Go toolchain (fallback when no prebuilt matches), yq.
 EOF
 }
 
@@ -70,9 +71,24 @@ if [ ! -f "$_db" ]; then
     log "created fresh database"
 fi
 
-need_cmd go "Go toolchain (runs pinned golang-migrate)"
+# Prefer the prebuilt binary (tools/cache-warm) when it matches the pin.
+_mbin="$REPO_ROOT/tools/bin/migrate"
+_mpre=0
+if [ -x "$_mbin" ] && [ -f "$_mbin.version" ] && [ "$(cat -- "$_mbin.version" 2>/dev/null)" = "$MIGRATE_VERSION" ]; then
+    _mpre=1
+fi
+_migrate() { # pass-through to the prebuilt binary or go run
+    if [ "$_mpre" -eq 1 ]; then
+        "$_mbin" "$@"
+    else
+        go run -tags 'sqlite' "github.com/golang-migrate/migrate/v4/cmd/migrate@$MIGRATE_VERSION" "$@"
+    fi
+}
+if [ "$_mpre" -eq 0 ]; then
+    need_cmd go "Go toolchain (fallback when no prebuilt matches)"
+fi
 _mrc=0
-_mout=$(go run -tags 'sqlite' "github.com/golang-migrate/migrate/v4/cmd/migrate@$MIGRATE_VERSION" -source "file://$_mig" -database "sqlite://$_db" up 2>&1) || _mrc=$?
+_mout=$(_migrate -source "file://$_mig" -database "sqlite://$_db" up 2>&1) || _mrc=$?
 if [ "$_mrc" -ne 0 ]; then
     if [ -n "$_mout" ]; then printf '%s\n' "$_mout"; fi
     if [ -n "$_backup" ]; then
@@ -84,7 +100,7 @@ fi
 if [ -n "$_mout" ]; then printf '%s\n' "$_mout"; fi
 
 _vrc=0
-_ver=$(go run -tags 'sqlite' "github.com/golang-migrate/migrate/v4/cmd/migrate@$MIGRATE_VERSION" -source "file://$_mig" -database "sqlite://$_db" version 2>&1) || _vrc=$?
+_ver=$(_migrate -source "file://$_mig" -database "sqlite://$_db" version 2>&1) || _vrc=$?
 if [ "$_vrc" -ne 0 ]; then
     if [ -n "$_ver" ]; then printf '%s\n' "$_ver"; fi
     die "migrate up succeeded but version readback failed (inspect $_db manually)"

@@ -1,5 +1,5 @@
 #!/bin/sh
-# verbs-cli.sh — CLI contract for all 15 verbs: help, usage errors, unknown
+# verbs-cli.sh — CLI contract for all 17 verbs: help, usage errors, unknown
 # deployments, hermetic state failures. Fake repo only; no toolchains run.
 set -eu
 TEST_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
@@ -60,7 +60,7 @@ expect_rc_grep() { # <label> <want-rc> <pattern> <verb> [args...]
 }
 
 # --- help ---
-for _s in create build deploy retire start stop restart status dev-up dev-down check e2e refresh-spec migrate template-check; do
+for _s in create build deploy retire start stop restart status dev-up dev-down check e2e refresh-spec migrate template-check cache-warm startup; do
     expect_rc_grep "$_s --help" 0 "usage: tools/$_s" "$_s" --help
 done
 
@@ -94,6 +94,11 @@ expect_rc "migrate bad flag" 2 migrate --bogus acme_shop_api-1
 expect_rc "template-check no args" 2 template-check
 expect_rc "template-check unknown" 2 template-check nope
 expect_rc "template-check two args" 2 template-check goa-api react-ui
+expect_rc "build unknown flag" 2 build --bogus acme_shop_api-1
+expect_rc "build if-stale no id" 2 build --if-stale
+expect_rc "build if-stale unknown id" 1 build --if-stale acme_shop_nope-9
+expect_rc "cache-warm extra arg" 2 cache-warm bogus
+expect_rc "startup extra arg" 2 startup bogus
 
 # --- unknown deployments ---
 for _s in build deploy retire start stop restart status check migrate; do

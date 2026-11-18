@@ -1,0 +1,133 @@
+#!/bin/sh
+# tools/startup — bring the whole platform up: Caddy, caches, all deployments.
+set -eu
+VERB=startup
+case $0 in
+    */*) _d=$(dirname -- "$0") ;;
+    *) _d=$(dirname -- "$(command -v "$0" 2>/dev/null || printf '%s' "$0")") ;;
+esac
+[ -f "$_d/lib.sh" ] || { echo "error: cannot find lib.sh (invoked as $0)" >&2; exit 1; }
+. "$_d/lib.sh"
+
+print_help() { cat <<'EOF'
+usage: tools/startup
+
+Ensure Caddy is running, ensure caches are warm (via cache-warm), then
+boot every deployment: APIs before UIs, each built when stale (npm
+install first for UIs missing node_modules), each API started unless
+already running, each verified through Caddy. Idempotent: safe to run
+anytime. Skips nothing silently; per-deployment failures are collected
+and reported at the end with a nonzero exit. Never migrates (boot is
+not promotion).
+
+Prerequisites: Go/Node.js toolchains, Caddy, yq, curl.
+EOF
+}
+
+case "${1:-}" in -h|--help) print_help; exit 0 ;; esac
+[ $# -eq 0 ] || usage "want no arguments"
+need_cmd curl "curl (documented prerequisite)"
+need_yq
+
+# --- Caddy: probe, start only if down ---
+if curl -sf --max-time 2 "$CADDY_ORIGIN/" >/dev/null 2>&1; then
+    log "caddy already up ($CADDY_ORIGIN)"
+else
+    need_cmd caddy "Caddy (documented prerequisite)"
+    log "starting caddy"
+    ( cd "$REPO_ROOT" && caddy start --config proxy/Caddyfile --adapter caddyfile ) || die "caddy start failed"
+    _i=0
+    while [ "$_i" -lt 10 ]; do
+        curl -sf --max-time 2 "$CADDY_ORIGIN/" >/dev/null 2>&1 && break
+        _i=$((_i + 1))
+        sleep 1
+    done
+    curl -sf --max-time 2 "$CADDY_ORIGIN/" >/dev/null 2>&1 || die "caddy did not come up at $CADDY_ORIGIN"
+    log "caddy up ($CADDY_ORIGIN)"
+fi
+unset _i
+
+# --- caches: delegate ---
+sh "$_d/cache-warm" || die "cache-warm step failed"
+
+# --- enumerate deployments (APIs boot before UIs) ---
+_apis=""
+_uis=""
+_failed=""
+for _pin in "$GONGSHO_HOME"/apps/*/*/*/.gongsho-deployment.yaml; do
+    [ -f "$_pin" ] || continue
+    _lid=$(yq eval -r '.id' "$_pin" 2>/dev/null) || _lid=""
+    if [ -z "$_lid" ] || ! ( validate_pin "$_lid" ) >/dev/null 2>&1; then
+        log "skipping invalid pin $_pin"
+        _failed="$_failed ${_pin}"
+        continue
+    fi
+    _lkind=$(template_kind "$(pin_template "$_lid")")
+    if [ "$_lkind" = "api" ]; then
+        _apis="$_apis $_lid"
+    else
+        _uis="$_uis $_lid"
+    fi
+    unset _lid _lkind
+done
+unset _pin
+if [ -z "$_apis$_uis" ] && [ -z "$_failed" ]; then
+    log "no deployments to boot"
+    exit 0
+fi
+
+_boot_one() { # <id> — build-if-stale, start-if-down (APIs), verify via Caddy
+    _b_id=$1
+    _b_t=$(pin_template "$_b_id")
+    _b_kind=$(template_kind "$_b_t")
+    _b_path=$(id_to_path "$_b_id")
+    _b_app=$(app_dir "$_b_id")
+    if [ "$_b_kind" = "ui" ] && [ ! -x "$_b_app/node_modules/.bin/vite" ]; then
+        need_cmd npm "Node.js toolchain (documented prerequisite)"
+        log "installing node_modules for '$_b_id'"
+        ( cd "$_b_app" && npm install ) || return 1
+    fi
+    sh "$_d/build" --if-stale "$_b_id" || return 1
+    if [ "$_b_kind" = "api" ]; then
+        _b_epid=$(read_pidfile "$(pidfile_path "$_b_id")")
+        if [ -n "$_b_epid" ] && pid_is_live "$_b_epid"; then
+            log "'$_b_id' already running (pid $_b_epid)"
+        else
+            sh "$_d/start" "$_b_id" || return 1
+        fi
+        _b_hspec=$(health_spec "$_b_t")
+        _b_hpath=$(yq eval -r '.path' "$_b_hspec" 2>/dev/null) || return 1
+        _b_hstatus=$(yq eval -r '.status' "$_b_hspec" 2>/dev/null) || return 1
+        _b_exp=$(mktemp) || return 1
+        yq eval -o=json '.body' "$_b_hspec" >"$_b_exp" 2>/dev/null || return 1
+        _b_rbody=$(mktemp) || return 1
+        _b_rcode=$(http_get "$CADDY_ORIGIN/$_b_path$_b_hpath" "$_b_rbody")
+        if [ "$_b_rcode" = "$_b_hstatus" ] && json_equal "$_b_exp" "$_b_rbody"; then
+            log "verified '$_b_id' through Caddy"
+        else
+            log "verification failed for '$_b_id' (code $_b_rcode)"
+            return 1
+        fi
+    else
+        log "no process to start for '$_b_id' (static UI)"
+        _b_ubody=$(mktemp) || return 1
+        _b_ucode=$(http_get "$CADDY_ORIGIN/$_b_path/" "$_b_ubody")
+        if [ "$_b_ucode" = "200" ] && [ -s "$_b_ubody" ]; then
+            log "verified '$_b_id' through Caddy"
+        else
+            log "verification failed for '$_b_id' (code $_b_ucode)"
+            return 1
+        fi
+    fi
+}
+
+for _bid in $_apis $_uis; do
+    if ! _boot_one "$_bid"; then
+        _failed="$_failed $_bid"
+    fi
+done
+unset _bid
+if [ -n "$_failed" ]; then
+    die "startup incomplete (failed:${_failed})"
+fi
+log "startup complete"

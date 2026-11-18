@@ -1,0 +1,60 @@
+#!/bin/sh
+# tools/cache-warm — pre-warm Go module/build caches and compile helpers.
+set -eu
+VERB=cache-warm
+case $0 in
+    */*) _d=$(dirname -- "$0") ;;
+    *) _d=$(dirname -- "$(command -v "$0" 2>/dev/null || printf '%s' "$0")") ;;
+esac
+[ -f "$_d/lib.sh" ] || { echo "error: cannot find lib.sh (invoked as $0)" >&2; exit 1; }
+. "$_d/lib.sh"
+
+print_help() { cat <<'EOF'
+usage: tools/cache-warm
+
+Download goa-api template modules, compile the pinned migrate binary
+into tools/bin/ (with its version sidecar), and compile the pinned goa
+CLI so its build-cache entries are warm. Idempotent: re-runs skip
+whatever already matches. Run once per machine and after any pin bump;
+startup runs this as a step.
+
+Prerequisites: Go toolchain.
+EOF
+}
+
+case "${1:-}" in -h|--help) print_help; exit 0 ;; esac
+[ $# -eq 0 ] || usage "want no arguments"
+need_cmd go "Go toolchain (documented prerequisite)"
+
+_bindir="$REPO_ROOT/tools/bin"
+ensure_dir "$_bindir" || die "cannot create $_bindir"
+
+log "downloading goa-api template modules"
+# NOTE: download from a temp copy — `go mod download all` records sums
+# into go.sum, and the template's copy must stay tidy-canonical.
+_dl=$(mktemp -d) || die "cannot create temp dir"
+cp -- "$REPO_ROOT/templates/goa-api/app/go.mod" "$REPO_ROOT/templates/goa-api/app/go.sum" "$_dl/" || { rm -rf -- "$_dl"; die "cannot stage module files"; }
+( cd "$_dl" && go mod download all ) || { rm -rf -- "$_dl"; die "go mod download failed (see above)"; }
+rm -rf -- "$_dl"
+
+_pinfile="$_bindir/migrate.version"
+if [ -x "$_bindir/migrate" ] && [ -f "$_pinfile" ] && [ "$(cat -- "$_pinfile")" = "$MIGRATE_VERSION" ]; then
+    log "migrate $MIGRATE_VERSION already built"
+else
+    log "building migrate $MIGRATE_VERSION"
+    GOBIN="$_bindir" go install -tags 'sqlite' "github.com/golang-migrate/migrate/v4/cmd/migrate@$MIGRATE_VERSION" || die "migrate build failed (see above)"
+    [ -x "$_bindir/migrate" ] || die "migrate build produced no binary"
+    _ptmp=$(tmp_in_dir "$_bindir")
+    printf '%s\n' "$MIGRATE_VERSION" >"$_ptmp"
+    atomic_mv "$_ptmp" "$_pinfile"
+    log "built $_bindir/migrate ($MIGRATE_VERSION)"
+fi
+
+_goaver=$(cd "$REPO_ROOT/templates/goa-api/app" && go list -m goa.design/goa/v3 2>&1) || die "go list failed: $_goaver"
+_goaver=${_goaver##* }
+case $_goaver in v*) ;; *) die "unexpected goa version '$_goaver'" ;; esac
+_gobin=$(mktemp -d) || die "cannot create temp dir"
+GOBIN="$_gobin" go install "goa.design/goa/v3/cmd/goa@$_goaver" || { rm -rf -- "$_gobin"; die "goa install failed (see above)"; }
+rm -rf -- "$_gobin"
+log "goa $_goaver compiled (build cache warm)"
+log "cache warm"
