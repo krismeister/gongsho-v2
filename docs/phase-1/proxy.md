@@ -1,12 +1,12 @@
 # Proxy (Caddy)
 
-One Caddy terminates a single localhost port and routes by path prefix. All
+One Caddy terminates a single local port and routes by path prefix. All
 directive behavior below follows the Caddy docs cited in phase-plan Sources.
 
 ## Main Caddyfile (`proxy/Caddyfile`)
 
 ```
-http://localhost:8181 {
+:8181 {
 	import deployments/*
 	import dev.d/*
 }
@@ -62,8 +62,7 @@ reload after each change. Logging stays default in v1 (assumed).
 
 ## Edge behavior (verified contract)
 
-- The `http://` scheme prefix disables automatic HTTPS; without it Caddy
-  attempts TLS plus a privileged `:80` bind and plain-HTTP clients break.
+- The bare `:8181` address carries no hostname, so automatic HTTPS provisions nothing and the server stays plain HTTP on 8181 only (verified with `caddy adapt`). Prefer this over adding hostnames: a hostname-bearing site would need an `http://` prefix to suppress automatic HTTPS.
 - Unmatched paths return 200 with an empty body, not 404. All verification
   asserts on body content, never status alone.
 - Deployment roots require the trailing slash: `/<path>/` proxies, `/<path>`
