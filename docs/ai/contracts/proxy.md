@@ -1,7 +1,7 @@
 # Proxy (Caddy)
 
 One Caddy terminates a single local port and routes by path prefix. All
-directive behavior below follows the Caddy docs cited in phase-plan Sources.
+directive behavior below follows the Caddy docs cited in `../planning/templates.md` Sources.
 
 ## Main Caddyfile (`proxy/Caddyfile`)
 

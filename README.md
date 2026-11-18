@@ -1,10 +1,10 @@
 # Gongsho
 
-A pod-based application development platform, built in three phases:
-templates first, then gongsho-console, then gongsho-apps.
+A pod-based application development platform: templates first, then
+gongsho-console, then gongsho-apps.
 
-Status: Phase 1 is in detailed design. Planning docs live in `docs/`;
-no implementation exists yet.
+Status: templates and harness are built and green; planning docs live
+in `docs/`.
 
 ## Prerequisites
 
@@ -31,16 +31,17 @@ offers the replacement during install.)
 
 Read in order:
 
-- `docs/roadmap.md` — overall phases, locked decisions, and the
-  canonical deferred-decisions list.
-- `docs/phase-1/phase-plan.md` — detailed Phase 1 plan: both templates, the
-  harness, deployment configuration, and the combined demo.
-- `docs/agent-workflow-usecase-1.md` — triage: how any human message
-  becomes an answer, an edit, or a question.
+- `docs/index.md` — what gongsho is and where to go next.
+- `docs/install.md` — toolchain, first boot, verification.
+- `docs/skills.md` — which agent does what.
+- `docs/planning/roadmap.md` — direction, durable decisions, and the
+  canonical deferred list.
+- `docs/planning/templates.md` — how the templates effort was built.
+- `docs/ai/` — agent entry, runbook, and frozen contracts.
 
-## Planned layout
+## Layout
 
-Per the Phase 1 plan: `templates/` (scaffold sources), `tools/` (the
-`.sh` harness), `apps/` (deployment source), `bin/` (build output),
-`proxy/` (Caddy config, sockets), `run/` (dev scratch). See
-`docs/phase-1/phase-plan.md` for the full tree.
+Two roots: the checkout holds `templates/` (scaffold sources), `tools/`
+(the `.sh` harness), `proxy/` (Caddy config, sockets), `bin/` (build
+output), `run/` (dev scratch), and `docs/`; deployments and databases
+live beside it in `apps/` and `data/`. See `docs/index.md` for the map.

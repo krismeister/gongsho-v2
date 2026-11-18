@@ -1,0 +1,16 @@
+{
+  "name": "gongsho-docs",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@9.15.9",
+  "scripts": {
+    "sync": "node ./scripts/sync-docs.mjs",
+    "build": "node ./scripts/sync-docs.mjs && ASTRO_TELEMETRY_DISABLED=1 astro build",
+    "dev": "node ./scripts/sync-docs.mjs && ASTRO_TELEMETRY_DISABLED=1 astro dev"
+  },
+  "dependencies": {
+    "@astrojs/starlight": "0.43.1",
+    "astro": "7.4.13"
+  }
+}

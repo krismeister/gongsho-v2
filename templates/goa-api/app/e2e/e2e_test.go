@@ -1,6 +1,6 @@
 // Package e2e holds the template's HTTP flow tests. The harness runs them
 // with `go test ./e2e/` after exporting E2E_BASE_URL or E2E_APP_<ID>
-// pointing at the deployment under test (see docs/phase-1/e2e-standard.md).
+// pointing at the deployment under test (see docs/ai/contracts/e2e-standard.md).
 // The tests never hardcode addresses.
 package e2e
 

@@ -14,9 +14,9 @@ follows the normal planner flow.
 
 Read these before acting, in order:
 
-- `docs/roadmap.md` — phases, locked decisions, deferred list.
-- `docs/phase-1/phase-plan.md` — the build plan and assumed defaults.
-- The relevant spec under `docs/phase-1/` for the area touched.
+- `docs/planning/roadmap.md` — direction, durable decisions, deferred list.
+- `docs/planning/templates.md` — how the templates effort was built.
+- The relevant contract under `docs/ai/contracts/` for the area touched.
 
 ## Layout (two roots)
 
@@ -46,7 +46,7 @@ Read these before acting, in order:
   regenerated across apps. Everything else is app property after scaffold.
 - No registry exists: resolve IDs, paths, sockets, and pins by derivation
   from the ID string plus the pin files and the filesystem (see
-  `docs/phase-1/ids-and-routing.md`).
+  `docs/ai/contracts/ids-and-routing.md`).
 - Templates stay compatible with their documented contracts: scaffold shape,
   manifest fields, stanza shapes, health and spec guarantees. Changing a
   contract means updating its spec file in the same change.

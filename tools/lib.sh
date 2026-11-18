@@ -1,7 +1,7 @@
 #!/bin/sh
 # lib.sh — shared helpers for the gongsho tools/ harness. Sourced, never run.
 #
-# Contract (docs/phase-1/tools.md): ID validation and parsing, ID<->path
+# Contract (docs/ai/contracts/tools.md): ID validation and parsing, ID<->path
 # derivation, tree/socket/pidfile/proxy path builders, Caddy reload, YAML
 # reads via yq, atomic writes, logging, prerequisite checks. Plus the small
 # shared pieces every verb needs: HTTP over unix sockets and TCP, JSON
@@ -80,7 +80,7 @@ CADDY_ORIGIN="${GONGSHO_SCHEME:-http}://${GONGSHO_HOST:-localhost}:${GONGSHO_POR
 # Supervisor timings in seconds (defaults 10/5).
 START_HEALTH_TIMEOUT="${GONGSHO_START_HEALTH_TIMEOUT:-10}"
 STOP_GRACE="${GONGSHO_STOP_GRACE:-5}"
-# golang-migrate pin (phase-plan: the migrate version pin lives in tools/).
+# golang-migrate pin (docs/planning/templates.md: the migrate version pin lives in tools/).
 # Default resolved 2026-11-12 from proxy.golang.org @latest.
 MIGRATE_VERSION="${GONGSHO_MIGRATE_VERSION:-v4.20.1}"
 # pnpm pin (vendored by cache-warm into .cache/pnpm). Stays on the v9

@@ -2,7 +2,7 @@
 # Sourced via tools/lib.sh; never sourced or run alone.
 #
 # yq dialect: mikefarah yq v4 (`yq eval`, `-r`, `-e`, `-o=json`) as cited
-# in the phase-plan Sources. need_yq() refuses any other flavor.
+# in docs/planning/templates.md Sources. need_yq() refuses any other flavor.
 
 need_yq() { # refuse to run YAML reads under any yq but mikefarah's
     command -v yq >/dev/null 2>&1 || die "missing required command 'yq' (install it with: sudo pacman -S go-yq)"

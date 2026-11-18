@@ -266,7 +266,7 @@ render_dev_stanza a3f9 acme_shop_ui-1 "$FR/proxy/dev.d/a3f9-acme_shop_ui-1"
     printf '# Rendered per deployment by the harness. Variables use ${VAR} form:\n'
     printf '#   acme/shop/ui-1  slash path of the deployment, e.g. acme/shop/ui-1\n'
     printf '#   %s  absolute path of the repo checkout\n' "$FR"
-    printf '# Shape follows docs/phase-1/proxy.md verbatim (handle_path strips the\n'
+    printf '# Shape follows docs/ai/contracts/proxy.md verbatim (handle_path strips the\n'
     printf '# prefix, so inner matchers see bundle-relative paths).\n'
     printf 'handle_path /dev/a3f9/acme/shop/ui-1/* {\n'
     printf '    root * %s/run/a3f9/bundles/acme/shop/ui-1\n' "$FR"

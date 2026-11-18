@@ -24,7 +24,7 @@ leaking into app runtimes (the file is sourced with exports):
   default store is not writable.
 
 Scratch/loop checkouts never use these values (see the port rule in
-`e2e-standard.md`).
+`../ai/contracts/e2e-standard.md`).
 
 ## App `.env` (per deployment)
 

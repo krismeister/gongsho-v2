@@ -1,6 +1,6 @@
 # agent-workflow-usecase-1 — Triage
 
-Status: v1. Companion to `roadmap.md` (overall phases). This file owns the
+Status: v1. Companion to `roadmap.md` (overall direction). This file owns the
 human→agent routing workflow: how any human message becomes an answer, an edit,
 or a question.
 

@@ -74,7 +74,7 @@ detection) for `bin/`, `run/`, `proxy/`, `templates/`, `tools/`, and
   validation, template kind.
 - `io.sh` — dir ensure, atomic temp-then-rename writes, time, session
   minting, hashing, Go-cache fallback plus `GOFLAGS` handling (see
-  `environments.md`).
+  `../planning/environments.md`).
 - `caddy.sh` — Caddy reload.
 - `health.sh` — direct-socket and TCP getters, JSON comparison,
   polled health wait.

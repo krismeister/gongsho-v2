@@ -34,5 +34,7 @@ Goa quickstart at time of writing; pin exact versions at implementation.
 - Health: `GET /healthz` returns 200 plus `{"status":"ok"}` (assumed shape).
 - Info: `GET /info` returns `id`, `template`, `templateVersion` (all injected
   env, so always truthful). Permanent endpoint, asserted by e2e.
-- The server listens on its unix socket (acceptance criterion: verify at
-  implementation; loopback-TCP fallback documented in phase-plan Risks).
+- The server listens on its unix socket (acceptance criterion, verified:
+  sockets work, so the loopback-TCP fallback never triggered; had it
+  failed, ports would have been harness-assigned ephemeral, never
+  configured).

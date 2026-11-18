@@ -3,7 +3,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { defineConfig, devices } from '@playwright/test';
 
-// E2E env contract (docs/phase-1/e2e-standard.md): the harness exports
+// E2E env contract (docs/ai/contracts/e2e-standard.md): the harness exports
 // E2E_BASE_URL, E2E_APP_<IDSLUG> per deployment under test, and
 // E2E_ARTIFACTS_DIR. This config never hardcodes addresses.
 const rootDir = dirname(fileURLToPath(import.meta.url));

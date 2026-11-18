@@ -45,7 +45,7 @@ const (
 const (
 	defaultLogLevel = "info"
 	// shutdownTimeout caps graceful shutdown inside the supervisor's 5s
-	// SIGTERM grace (see docs/phase-1/supervision-and-runtime.md).
+	// SIGTERM grace (see docs/planning/supervision-and-runtime.md).
 	shutdownTimeout = 4 * time.Second
 )
 

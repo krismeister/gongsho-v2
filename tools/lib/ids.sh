@@ -3,7 +3,7 @@
 #
 # IDs are team_project_deployment (underscores); paths are team/project/deployment
 # (slashes). Segments allow lowercase, digits, hyphens only; team `dev` is
-# reserved (docs/phase-1/ids-and-routing.md).
+# reserved (docs/ai/contracts/ids-and-routing.md).
 
 _id_seg_ok() { # <segment> — 0 when the segment charset is legal
     case $1 in

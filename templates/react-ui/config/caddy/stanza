@@ -2,7 +2,7 @@
 # Rendered per deployment by the harness. Variables use ${VAR} form:
 #   ${PATH}  slash path of the deployment, e.g. acme/shop/ui-1
 #   ${REPO}  absolute path of the repo checkout
-# Shape follows docs/phase-1/proxy.md verbatim (handle_path strips the
+# Shape follows docs/ai/contracts/proxy.md verbatim (handle_path strips the
 # prefix, so inner matchers see bundle-relative paths).
 handle_path /${PATH}/* {
     root * ${REPO}/bin/${PATH}

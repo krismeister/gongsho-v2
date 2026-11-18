@@ -9,7 +9,7 @@ server rendering (a future `nextjs-ui` template covers that).
 - `.gongsho-tpl.yaml` — manifest: `vars: [id]`, `owned: [proxy-stanza]`.
 - `config/caddy/stanza` — proxy stanza template; render `${PATH}` (slash
   path, e.g. `acme/shop/ui-1`) and `${REPO}` (absolute checkout path).
-  Verbatim shape from `docs/phase-1/proxy.md`.
+  Verbatim shape from `docs/ai/contracts/proxy.md`.
 - `app/` — scaffold source, copied as-is to the deployment dir.
 
 Only `proxy-stanza` may be regenerated across apps; everything under `app/`
