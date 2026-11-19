@@ -28,8 +28,8 @@ case "${1:-}" in -h|--help) print_help; exit 0 ;; esac
 _id=$1
 validate_id "$_id"
 validate_pin "$_id"
-_kind=$(template_kind "$(pin_template "$_id")")
-if [ "$_kind" != "ui" ] && [ "$(pin_template "$_id")" != "langchain-api" ]; then
+_t=$(pin_template "$_id")
+if ! tpl_needs_install "$_t"; then
     die "'$_id' is a goa API deployment (nothing to install)"
 fi
 ( cd "$(app_dir "$_id")" && sh "$_d/pnpm" install ) || die "pnpm install failed for '$_id' (see above)"

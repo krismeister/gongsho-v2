@@ -59,30 +59,7 @@ mkdir -p -- "$_app" || die "cannot create apps/$_path"
 cp -r -- "$_src/." "$_app/" || die "scaffold copy failed"
 
 if [ "$_kind" = "api" ]; then
-    if [ "$_template" = "goa-api" ]; then
-        _mod="gongsho/$_path"
-        ( cd "$_app" && grep -rl 'gongsho/template/goa-api' --include='*.go' --include='go.mod' . | while IFS= read -r _f; do
-            sed -i "s|gongsho/template/goa-api|$_mod|g" "$_f"
-        done ) || die "module path render failed"
-        if grep -rq 'gongsho/template/goa-api' "$_app" --include='*.go' --include='go.mod'; then
-            die "module token render incomplete"
-        fi
-        grep -q -F -- "$_mod" "$_app/go.mod" || die "module render produced no result in go.mod"
-        need_cmd go "Go toolchain (documented prerequisite)"
-        _modline=$(cd "$_app" && go list -m 2>&1) || die "go list failed: $_modline"
-        ( cd "$_app" && go run goa.design/goa/v3/cmd/goa gen "$_modline/design" ) || die "goa gen failed (see above)"
-        [ -f "$_app/gen/http/openapi3.json" ] || die "goa gen emitted no gen/http/openapi3.json"
-        _gtmp=$(tmp_in_dir "$_app/gen")
-        cp -- "$_app/gen/http/openapi3.json" "$_gtmp" || die "spec normalize copy failed"
-        atomic_mv "$_gtmp" "$_app/gen/openapi.json"
-        ( cd "$_app" && go mod tidy ) || die "go mod tidy failed (see above)"
-        # NOTE: tidy self-heals the scaffold's pins; per the staleness rule
-        # (manifest versions only) there is no file-content drift verdict on
-        # this path — template validity belongs to template-check.
-        log "scaffolded API (module $_mod, gen/ generated)"
-    else
-        log "scaffolded API ($_template; run: install $_id before build)"
-    fi
+    tpl_scaffold_api "$_template" "$_id" "$_path" "$_app" || die "scaffold step failed for '$_id'"
     sed -i "s|{{ID}}|$_id|g; s|{{PATH}}|$_path|g" "$_app/README.md" || die "README render failed"
     if grep -rq -F -e '{{ID}}' -e '{{PATH}}' -e '${ID}' -e '${PATH}' "$_app"; then
         die "scaffold left unrendered placeholders"

@@ -83,6 +83,12 @@ detection) for `bin/`, `run/`, `proxy/`, `templates/`, `tools/`, and
   (re-render from template plus pin), asserted dev-stanza
   derivation, `gen-config.json` writer.
 - `env.sh` — `.env` ensure plus source, pin-derived injected exports.
+- `tpl-*.sh` — one driver per template (same function interface:
+  install need, scaffold, build, e2e runner, regen check, cache
+  warm); `tpl.sh` dispatches by template name. Verbs branch on
+  `api|ui` kind and delegate template differences here, so a new
+  template adds a driver plus dispatcher arms instead of
+  re-editing every verb.
 
 ## `tests/` (committed, hermetic)
 

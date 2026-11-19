@@ -101,7 +101,7 @@ _boot_one() { # <id> — build-if-stale, start-if-down (APIs), verify via Caddy
     _b_kind=$(template_kind "$_b_t")
     _b_path=$(id_to_path "$_b_id")
     _b_app=$(app_dir "$_b_id")
-    if [ "$_b_kind" = "ui" ]; then
+    if tpl_needs_install "$_b_t"; then
         sh "$_d/install" "$_b_id" || return 1
     fi
     sh "$_d/build" --if-stale "$_b_id" || return 1

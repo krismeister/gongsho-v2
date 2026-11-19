@@ -17,7 +17,9 @@ _killall() {
 trap '_killall; rm -rf "$F"' EXIT
 mkdir -p "$F/tools" "$F/templates" "$F/apps/acme/shop/api-1" "$F/apps/acme/shop/ui-1"
 cp "$R/tools/lib.sh" "$F/tools/lib.sh"
-cp -r "$R/templates/goa-api" "$R/templates/react-ui" "$F/templates/"
+# Mirror every repo template: verbs (e.g. cache-warm) iterate the template
+# set, so a fixture frozen at two templates goes stale on the third.
+for _tpl in "$R"/templates/*/; do cp -r -- "$_tpl" "$F/templates/"; done; unset _tpl
 cat >"$F/apps/acme/shop/api-1/.gongsho-deployment.yaml" <<'EOF'
 id: acme_shop_api-1
 path: acme/shop/api-1
@@ -536,12 +538,14 @@ fi
 # --- startup against an isolated fake root (per-deployment boot proven in loop) ---
 if command -v python3 >/dev/null 2>&1; then
     _S2=$(mktemp -d)
-    mkdir -p "$_S2/tools" "$_S2/templates/goa-api/app" "$_S2/templates/react-ui/app" "$_S2/proxy"
+    mkdir -p "$_S2/tools" "$_S2/templates/goa-api/app" "$_S2/templates/react-ui/app" "$_S2/templates/langchain-api/app" "$_S2/proxy"
     cp "$R/tools/lib.sh" "$_S2/tools/lib.sh"
     printf 'module stub\n\ngo 1.23\n' >"$_S2/templates/goa-api/app/go.mod"
     printf '' >"$_S2/templates/goa-api/app/go.sum"
     printf '{"name":"stub"}\n' >"$_S2/templates/react-ui/app/package.json"
     printf '# stub lock\n' >"$_S2/templates/react-ui/app/pnpm-lock.yaml"
+    printf '{"name":"stub"}\n' >"$_S2/templates/langchain-api/app/package.json"
+    printf '# stub lock\n' >"$_S2/templates/langchain-api/app/pnpm-lock.yaml"
     _o_repo=$GONGSHO_REPO; _o_home=$GONGSHO_HOME
     export GONGSHO_REPO=$_S2 GONGSHO_HOME=$_S2 GONGSHO_PORT=18281
     _oldpath2=$PATH; PATH="$F/cwbin:$PATH"
@@ -570,6 +574,63 @@ if command -v python3 >/dev/null 2>&1; then
 else
     printf 'SKIP: no python3 for startup cases\n'
 fi
+
+# --- build UI positive: --base reaches vite intact (never after `--`) ---
+# A recording pnpm stub stands in for the toolchain; its `exec vite` arm
+# writes dist/index.html the way vite would, embedding the passed base.
+# Fresh deployment: earlier cases leave snapshots behind and retire api-1.
+_uid="acme_shop_ui-2"
+_upath="acme/shop/ui-2"
+_uapp="$F/apps/$_upath"
+mkdir -p "$_uapp"
+cat >"$_uapp/.gongsho-deployment.yaml" <<EOF
+id: $_uid
+path: $_upath
+template: react-ui
+templateVersion: "1.0"
+vars: {}
+created: "2026-11-11T12:00:00Z"
+EOF
+mkdir -p "$_uapp/spec" "$_uapp/node_modules/.bin" "$F/.cache/pnpm/node_modules/.bin"
+printf '#!/bin/sh\nexit 0\n' >"$_uapp/node_modules/.bin/vite"
+chmod +x "$_uapp/node_modules/.bin/vite"
+cat >"$F/.cache/pnpm/node_modules/.bin/pnpm" <<'SHEOF'
+#!/bin/sh
+printf '%s\n' "$*" >>"${PNPM_CALL_LOG:?}"
+if [ "$1" = "exec" ]; then
+    shift
+    if [ "$1" = "vite" ]; then
+        shift
+        _base=""
+        for _a in "$@"; do
+            case $_a in --base=*) _base=${_a#--base=};; esac
+        done
+        [ -n "$_base" ] || exit 1
+        mkdir -p dist
+        printf '<!doctype html><script src="%sassets/app.js"></script>\n' "$_base" >dist/index.html
+        exit 0
+    fi
+    exit 0
+fi
+exit 0
+SHEOF
+chmod +x "$F/.cache/pnpm/node_modules/.bin/pnpm"
+export PNPM_CALL_LOG="$F/pnpm.calls"
+: >"$F/pnpm.calls"
+runv build "$_uid"
+if [ "$_rc" = "0" ]; then ok "build ui ok"; else bad "build ui ok (exit $_rc: $_out)"; fi
+if grep -qx -F "exec vite build --base=/$_upath/" "$F/pnpm.calls"; then
+    ok "build ui base reaches vite intact"
+else
+    bad "build ui base reaches vite intact ($(tr '\n' '|' <"$F/pnpm.calls"))"
+fi
+if grep -q -F "=\"/$_upath/assets/" "$F/bin/$_upath/index.html" 2>/dev/null; then
+    ok "build ui bundle carries base"
+else
+    bad "build ui bundle carries base"
+fi
+unset PNPM_CALL_LOG _uapp _uid _upath
+rm -rf "$F/.cache"
 
 printf '%s\npass=%d fail=%d\n' '---' "$pass" "$fail"
 [ "$fail" -eq 0 ]

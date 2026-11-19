@@ -69,8 +69,13 @@ for _id in $_ids; do
         _path=$(id_to_path "$_id")
         _app=$(app_dir "$_id")
         _bdir=$(dev_bundle_dir "$_session" "$_id")
-        ( cd "$_app" && sh "$_d/pnpm" run build:dev -- --base="/dev/$_session/$_path/" ) || die "dev bundle build failed for '$_id'"
+        # Same `pnpm run` flag-forwarding trap as tools/build: pnpm appends
+        # args after a literal `--`, so flags must go via `pnpm exec`.
+        ( cd "$_app" && sh "$_d/pnpm" run gen-client ) || die "client regen failed for '$_id' (see above)"
+        ( cd "$_app" && sh "$_d/pnpm" exec tsc -b ) || die "typecheck failed for '$_id' (see above)"
+        ( cd "$_app" && sh "$_d/pnpm" exec vite build --sourcemap --minify false --base="/dev/$_session/$_path/" ) || die "dev bundle build failed for '$_id'"
         [ -f "$_app/dist/index.html" ] || die "dev bundle build produced no dist/index.html"
+        grep -Fq -- "=\"/dev/$_session/$_path/assets/" "$_app/dist/index.html" || die "dev bundle ignored --base /dev/$_session/$_path/ (index.html has no \"/dev/$_session/$_path/assets\" URL)"
         rm -rf -- "$_bdir"
         ensure_dir "$(dirname -- "$_bdir")" || die "cannot create bundle scratch"
         mv -- "$_app/dist" "$_bdir" || die "cannot stage dev bundle"
@@ -98,11 +103,7 @@ for _id in $_ids; do
         log "running API e2e for '$_id'"
         _elog="$(artifacts_dir "$_session")/$_id.e2e.log"
         _rc=0
-        if [ "$_t" = "goa-api" ]; then
-            ( cd "$(app_dir "$_id")" && go test ./e2e/ ) >"$_elog" 2>&1 || _rc=$?
-        else
-            ( cd "$(app_dir "$_id")" && sh "$_d/pnpm" run test-e2e ) >"$_elog" 2>&1 || _rc=$?
-        fi
+        tpl_run_api_e2e "$_t" "$_id" "$_d" >"$_elog" 2>&1 || _rc=$?
         cat -- "$_elog"
         if [ "$_rc" -eq 0 ]; then
             log "API e2e passed for '$_id'"

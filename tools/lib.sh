@@ -88,7 +88,7 @@ MIGRATE_VERSION="${GONGSHO_MIGRATE_VERSION:-v4.20.1}"
 PNPM_VERSION="${GONGSHO_PNPM_VERSION:-9.15.9}"
 
 # --- modules ---------------------------------------------------------------
-for _L_m in ids paths pin io caddy health proc render env; do
+for _L_m in ids paths pin io caddy health proc render env tpl-goa-api tpl-langchain-api tpl-react-ui tpl; do
     . "$_L_lib_dir/$_L_m.sh" || { err "error: cannot source tools/lib/$_L_m.sh"; exit 1; }
 done
 

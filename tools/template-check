@@ -53,31 +53,14 @@ trap '_cleanup' EXIT
 
 log "checking template '$_t' (scratch $_id)"
 sh "$_d/create" "$_path" --template "$_t" || die "create step failed"
-if [ "$_kind" = "ui" ] || [ "$_t" = "langchain-api" ]; then
+if tpl_needs_install "$_t"; then
     sh "$_d/install" "$_id" || die "install step failed"
 fi
 sh "$_d/build" "$_id" || die "build step failed"
 
 _h1=$(mktemp) || die "cannot create temp file"
 _h2=$(mktemp) || die "cannot create temp file"
-if [ "$_t" = "goa-api" ]; then
-    ( cd "$_app" && find gen -type f -exec sha256sum {} + | sort -k2 ) >"$_h1" || die "cannot hash gen/"
-    _modline=$(cd "$_app" && go list -m 2>&1) || die "go list failed: $_modline"
-    ( cd "$_app" && go run goa.design/goa/v3/cmd/goa gen "$_modline/design" && cp gen/http/openapi3.json gen/openapi.json ) || die "regen failed (see above)"
-    ( cd "$_app" && find gen -type f -exec sha256sum {} + | sort -k2 ) >"$_h2" || die "cannot hash gen/"
-    cmp -s -- "$_h1" "$_h2" || die "gen/ is not regen-clean (regeneration changed committed output)"
-    log "gen/ regen-clean"
-elif [ "$_t" = "langchain-api" ]; then
-    ( cd "$_app" && sh "$_d/pnpm" exec tsc -b --force ) || die "re-typecheck failed (see above)"
-    ( cd "$_app" && node -e "const s=require('fs').readFileSync('gen/openapi.json','utf8');const j=JSON.parse(s);for(const p of ['/healthz','/info','/openapi.json']){if(!j.paths[p]){console.error('openapi.json misses '+p);process.exit(1)}}console.log('openapi.json contract paths present')" ) || die "committed spec fails the contract check"
-    log "spec/ strictness passed"
-else
-    ( cd "$_app" && find src/client -type f -exec sha256sum {} + | sort -k2 ) >"$_h1" || die "cannot hash src/client/"
-    ( cd "$_app" && sh "$_d/pnpm" run gen-client ) || die "client regen failed (see above)"
-    ( cd "$_app" && find src/client -type f -exec sha256sum {} + | sort -k2 ) >"$_h2" || die "cannot hash src/client/"
-    cmp -s -- "$_h1" "$_h2" || die "src/client/ is not regen-clean (regeneration changed committed output)"
-    log "src/client/ regen-clean"
-fi
+tpl_regen_check "$_t" "$_id" "$_app" "$_d" "$_h1" "$_h2" || die "regen check failed for '$_t' (see above)"
 rm -f -- "$_h1" "$_h2"
 
 if [ "$_kind" = "api" ]; then
