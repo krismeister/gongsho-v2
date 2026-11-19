@@ -1,0 +1,40 @@
+#!/bin/sh
+# tools/fmt — format repo Go sources in place (gofmt -w), report what changed.
+set -eu
+VERB=fmt
+case $0 in
+    */*) _d=$(dirname -- "$0") ;;
+    *) _d=$(dirname -- "$(command -v "$0" 2>/dev/null || printf '%s' "$0")") ;;
+esac
+[ -f "$_d/lib.sh" ] || { echo "error: cannot find lib.sh (invoked as $0)" >&2; exit 1; }
+. "$_d/lib.sh"
+
+print_help() { cat <<'EOF'
+usage: tools/fmt
+
+Format every Go module under the repo checkout in place (gofmt -w) and
+list changed files. Never touches apps/ (app property) or ignored trees
+(.git, .cache). Idempotent: a clean tree reports clean.
+
+Prerequisites: Go toolchain (gofmt ships with it).
+EOF
+}
+
+case "${1:-}" in -h|--help) print_help; exit 0 ;; esac
+[ $# -eq 0 ] || usage "want no arguments"
+need_cmd go "Go toolchain (gofmt ships with it)"
+
+_files=$(find "$REPO_ROOT" \( -path "$REPO_ROOT/.git" -o -path "$REPO_ROOT/.cache" -o -path "$REPO_ROOT/node_modules" \) -prune -o -name '*.go' -print) || die "cannot list Go sources"
+if [ -z "$_files" ]; then
+    log "no Go sources under $REPO_ROOT"
+    exit 0
+fi
+_unformatted=$(printf '%s\n' "$_files" | xargs gofmt -l) || die "gofmt check failed"
+if [ -z "$_unformatted" ]; then
+    log "already formatted"
+    exit 0
+fi
+printf '%s\n' "$_unformatted" | xargs gofmt -w || die "gofmt write failed"
+_n=$(printf '%s\n' "$_unformatted" | wc -l | tr -d ' ')
+log "formatted $_n file(s):"
+printf '%s\n' "$_unformatted"

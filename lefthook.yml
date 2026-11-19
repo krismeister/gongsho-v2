@@ -1,0 +1,11 @@
+# lefthook config — local gates that run automatically on commit.
+# The fast check suite lives in repo verbs; this file only wires them in.
+# tools/fmt is the fixer (gofmt -w, stage_fixed puts results back in the
+# commit). Heavier gates (full tools/tests/run.sh) stay in CI.
+pre-commit:
+  commands:
+    gofmt:
+      glob:
+        - "*.go"
+      run: gofmt -w {staged_files}
+      stage_fixed: true

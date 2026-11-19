@@ -41,9 +41,12 @@ alongside Go, Node, Caddy).
 - `cache-warm` — download template Go modules, compile the pinned
   migrate binary into `tools/bin/` (plus version sidecar), compile the
   in-repo `secretsread` helper into `tools/bin/` (plus source-hash
-  sidecar), compile the pinned goa CLI for build-cache warmth, vendor
-  the pinned pnpm into `.cache/pnpm` (plus sidecar) with UI deps
-  prefetched. Idempotent.
+  sidecar), compile the pinned lefthook binary into `tools/bin/` (plus
+  version sidecar) and install its hooks, compile the pinned goa CLI
+  for build-cache warmth, vendor the pinned pnpm into `.cache/pnpm`
+  (plus sidecar) with UI deps prefetched. Idempotent.
+- `fmt` — format repo Go sources in place (`gofmt -w`), report changed
+  files. Never touches apps/, `.git`, or `.cache`. Idempotent.
 - `install <id>` — install a UI deployment's node deps via vendored
   pnpm (shared store). APIs have nothing to install.
 - `pnpm <args...>` — vendored pnpm with the shared store

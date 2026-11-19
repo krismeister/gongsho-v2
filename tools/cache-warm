@@ -70,6 +70,25 @@ else
     log "no tools/secretsread (skipping secretsread build; verbs fall back to go run)"
 fi
 
+_lhpin="$_bindir/lefthook.version"
+if [ -x "$_bindir/lefthook" ] && [ -f "$_lhpin" ] && [ "$(cat -- "$_lhpin")" = "$LEFTHOOK_VERSION" ]; then
+    log "lefthook $LEFTHOOK_VERSION already built"
+else
+    log "building lefthook $LEFTHOOK_VERSION"
+    GOBIN="$_bindir" go install "github.com/evilmartians/lefthook@$LEFTHOOK_VERSION" || die "lefthook build failed (see above)"
+    [ -x "$_bindir/lefthook" ] || die "lefthook build produced no binary"
+    _lhtmp=$(tmp_in_dir "$_bindir")
+    printf '%s\n' "$LEFTHOOK_VERSION" >"$_lhtmp"
+    atomic_mv "$_lhtmp" "$_lhpin"
+    log "built $_bindir/lefthook ($LEFTHOOK_VERSION)"
+fi
+if [ -f "$REPO_ROOT/lefthook.yml" ]; then
+    ( CDPATH= cd -- "$REPO_ROOT" && "$_bindir/lefthook" install ) || die "lefthook hook install failed (see above)"
+    log "lefthook hooks installed"
+else
+    log "no lefthook.yml (skipping hook install)"
+fi
+
 _pnpm_dir="$REPO_ROOT/.cache/pnpm"
 _pnpm_bin="$_pnpm_dir/node_modules/.bin/pnpm"
 _pnpm_pin="$_pnpm_dir/pnpm.version"

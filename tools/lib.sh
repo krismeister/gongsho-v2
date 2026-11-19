@@ -86,6 +86,11 @@ MIGRATE_VERSION="${GONGSHO_MIGRATE_VERSION:-v4.20.1}"
 # pnpm pin (vendored by cache-warm into .cache/pnpm). Stays on the v9
 # line: v12's store-operation locking fails under sandboxed shells.
 PNPM_VERSION="${GONGSHO_PNPM_VERSION:-9.15.9}"
+# lefthook pin (vendored by cache-warm into tools/bin/; hooks run it).
+# Stays below the go-json-experiment dependency (v1.13+): this toolchain
+# build lacks that experimental stdlib surface, so newer lefthook will
+# not compile here. Float forward when the toolchain does.
+LEFTHOOK_VERSION="${GONGSHO_LEFTHOOK_VERSION:-v1.12.4}"
 
 # --- modules ---------------------------------------------------------------
 for _L_m in ids paths pin io caddy health proc render env tpl-goa-api tpl-langchain-api tpl-react-ui tpl; do

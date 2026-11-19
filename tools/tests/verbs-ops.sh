@@ -430,6 +430,7 @@ if [ "$1" = "list" ]; then echo "goa.design/goa/v3 v9.9.9-cwtest"; exit 0; fi
 if [ "$1" = "install" ]; then
     case "$*" in
         *cmd/migrate*) mkdir -p "$GOBIN"; printf '#!/bin/sh\nexit 0\n' >"$GOBIN/migrate"; chmod +x "$GOBIN/migrate" ;;
+        *evilmartians/lefthook*) mkdir -p "$GOBIN"; printf '#!/bin/sh\nexit 0\n' >"$GOBIN/lefthook"; chmod +x "$GOBIN/lefthook" ;;
     esac
     exit 0
 fi
