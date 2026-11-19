@@ -34,6 +34,16 @@ current.
   Re-tune the alpha per surface — never lift a wash value from one
   background onto another and expect the same color.
 
+## App theme
+
+[shadcn theme](theme/shadcn.css) — the standard as light + dark
+design tokens (oklch) for shadcn/Tailwind v4. A
+[green-primary variant](theme/shadcn-green.css) swaps the lead role
+to the success green when pink gets too loud. Primary is the pod
+plum/pink, secondary the pink wash, accent the success green, charts
+extend to the CLI teal, output blue, and prompt pink. Paste it into
+tweakcn's editor (Import → CSS) or drop it into `globals.css`.
+
 ## Tone and preferences
 
 Business users, wonder over cleverness. Agent-forward ("tell an
