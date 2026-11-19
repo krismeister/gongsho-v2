@@ -14,9 +14,10 @@ usage: tools/cache-warm
 
 Per-template caches plus shared helpers: goa-api Go modules and
 goa CLI, the pinned migrate binary into tools/bin/ (with its version
-sidecar), the vendored pnpm into .cache/pnpm (plus its version
-sidecar), and every node template's dependencies prefetched to the
-shared store. Idempotent: re-runs skip whatever already matches.
+sidecar), the in-repo secretsread binary into tools/bin/ (with its
+source-hash sidecar), the vendored pnpm into .cache/pnpm (plus its
+version sidecar), and every node template's dependencies prefetched to
+the shared store. Idempotent: re-runs skip whatever already matches.
 Run once per machine and after any pin bump; startup runs this as a step.
 
 Prerequisites: Go toolchain, npm (bootstraps vendored pnpm only).
@@ -43,6 +44,30 @@ else
     printf '%s\n' "$MIGRATE_VERSION" >"$_ptmp"
     atomic_mv "$_ptmp" "$_pinfile"
     log "built $_bindir/migrate ($MIGRATE_VERSION)"
+fi
+
+if [ -d "$REPO_ROOT/tools/secretsread" ]; then
+    _srwant="src-$(secrets_source_hash)"
+    _srbin="$_bindir/secretsread"
+    _srhave=""
+    if [ -x "$_srbin" ] && [ -f "$_srbin.version" ]; then
+        _srhave=$(cat -- "$_srbin.version" 2>/dev/null || true)
+    fi
+    if [ -n "$_srhave" ] && [ "$_srhave" = "$_srwant" ]; then
+        log "secretsread already built"
+    else
+        log "building secretsread"
+        _srtmp=$(tmp_in_dir "$_bindir")
+        ( CDPATH= cd -- "$REPO_ROOT/tools/secretsread" && go build -o "$_srtmp" . ) || die "secretsread build failed (see above)"
+        [ -x "$_srtmp" ] || die "secretsread build produced no binary"
+        atomic_mv "$_srtmp" "$_srbin"
+        _srptmp=$(tmp_in_dir "$_bindir")
+        printf '%s\n' "$_srwant" >"$_srptmp"
+        atomic_mv "$_srptmp" "$_srbin.version"
+        log "built $_srbin"
+    fi
+else
+    log "no tools/secretsread (skipping secretsread build; verbs fall back to go run)"
 fi
 
 _pnpm_dir="$REPO_ROOT/.cache/pnpm"

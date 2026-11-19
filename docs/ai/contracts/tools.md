@@ -40,8 +40,10 @@ alongside Go, Node, Caddy).
   prebuilt `tools/bin/migrate` matching the pin, else `go run`.
 - `cache-warm` — download template Go modules, compile the pinned
   migrate binary into `tools/bin/` (plus version sidecar), compile the
-  pinned goa CLI for build-cache warmth, vendor the pinned pnpm into
-  `.cache/pnpm` (plus sidecar) with UI deps prefetched. Idempotent.
+  in-repo `secretsread` helper into `tools/bin/` (plus source-hash
+  sidecar), compile the pinned goa CLI for build-cache warmth, vendor
+  the pinned pnpm into `.cache/pnpm` (plus sidecar) with UI deps
+  prefetched. Idempotent.
 - `install <id>` — install a UI deployment's node deps via vendored
   pnpm (shared store). APIs have nothing to install.
 - `pnpm <args...>` — vendored pnpm with the shared store
@@ -55,6 +57,9 @@ alongside Go, Node, Caddy).
 
 - `template-check <template>` — scaffold a scratch app, build, check, tear
   down. Required by the exit gate.
+- `setup` — first-run machine provisioning: prerequisite check, machine
+  `.env` ensure, master-key ensure; then hand off to `cache-warm` /
+  `startup`. Idempotent.
 - `template-new` skipped for v1 (assumed); version bumps ride the later
   upgrade mechanism.
 
@@ -82,7 +87,9 @@ detection) for `bin/`, `run/`, `proxy/`, `templates/`, `tools/`, and
 - `render.sh` — stable stanza render plus `ensure_proxy_file`
   (re-render from template plus pin), asserted dev-stanza
   derivation, `gen-config.json` writer.
-- `env.sh` — `.env` ensure plus source, pin-derived injected exports.
+- `env.sh` — `.env` ensure plus source, pin-derived injected exports,
+  `secretsread` lookup (prebuilt-or-`go run`) plus its source-hash,
+  master-key ensure.
 - `tpl-*.sh` — one driver per template (same function interface:
   install need, scaffold, build, e2e runner, regen check, cache
   warm); `tpl.sh` dispatches by template name. Verbs branch on

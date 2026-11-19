@@ -1,0 +1,43 @@
+#!/bin/sh
+# tools/setup — first-run machine provisioning: prerequisites, machine .env, master key.
+set -eu
+VERB=setup
+case $0 in
+    */*) _d=$(dirname -- "$0") ;;
+    *) _d=$(dirname -- "$(command -v "$0" 2>/dev/null || printf '%s' "$0")") ;;
+esac
+[ -f "$_d/lib.sh" ] || { echo "error: cannot find lib.sh (invoked as $0)" >&2; exit 1; }
+. "$_d/lib.sh"
+
+print_help() { cat <<'EOF'
+usage: tools/setup
+
+First-run provisioning for this machine: check prerequisites (Go
+toolchain, yq, Caddy), create root .env from .example.env when absent,
+ensure the secrets master key, then hand off. Afterwards run
+tools/cache-warm, then tools/startup. Idempotent: safe to re-run.
+
+Prerequisites: Go toolchain, yq, Caddy.
+EOF
+}
+
+case "${1:-}" in -h|--help) print_help; exit 0 ;; esac
+[ $# -eq 0 ] || usage "want no arguments"
+
+need_cmd go "Go toolchain (documented prerequisite)"
+need_cmd yq "yq (documented prerequisite)"
+need_cmd caddy "Caddy (documented prerequisite)"
+
+if [ -f "$REPO_ROOT/.env" ]; then
+    log ".env present"
+else
+    [ -f "$REPO_ROOT/.example.env" ] || die "no .example.env in $REPO_ROOT"
+    _senv=$(tmp_in_dir "$REPO_ROOT") || die "cannot stage machine .env"
+    cp -- "$REPO_ROOT/.example.env" "$_senv" || die "cannot copy .example.env"
+    atomic_mv "$_senv" "$REPO_ROOT/.env"
+    log "created .env from .example.env (adjust per machine)"
+fi
+
+_skfp=$(secrets_ensure_master_key) || die "master key ensure failed (see above)"
+log "master key ready (fingerprint $_skfp)"
+log "setup complete — next: tools/cache-warm, then tools/startup"

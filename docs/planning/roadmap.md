@@ -55,6 +55,31 @@ These decisions hold until someone makes the case to change them:
   (smallest deployable unit, shared network/storage), with no pod
   packaging now. Local iteration follows Tilt behavior: watch files,
   rebuild, bring the environment up to date.
+- **Secrets:** third-party API keys that teams' APIs consume live in a
+  central store scoped org → team → project → deployment, most
+  specific wins (slugs repeat across parents). Ciphertext-only at rest from day
+  one (AES-256-GCM, `v1:`-enveloped values); one machine-held master
+  key derives per-scope keys in memory (HKDF-SHA256) — the method is
+  public, only the master is secret. The console writes blind
+  (metadata-only reads, no value-returning endpoint); rotation takes
+  effect on restart; builds stay secret-free. The reader contract for
+  verbs lives in `tools/secretsread/` (prebuilt-or-`go run` helper).
+  Start-hook injection plus the operator keygen verb still land.
+- **Project communication:** APIs call directly within a project;
+  traffic to another project's API goes through the message queue
+  only. The queue is the choke point (publish/subscribe still needs
+  auth), and the rule commits cross-project traffic to async.
+  Platform plumbing — secrets resolution at boot, harness, proxy, and
+  the broker itself — stays synchronous: it cannot subscribe before
+  it exists. Adopting this schedules the deferred queue decision
+  (broker choice plus ordering and poison-message semantics).
+- **Project separation:** the project is the unit of comprehension
+  (one planner owns one project) and the future unit of sandbox
+  containment; the deployment is the isolation unit (own process, DB
+  file, env). Features that call each other directly live in one
+  project — the secrets API sits in the admin project beside the
+  console for exactly this reason (a cross-project console→secrets
+  call would violate the queue rule above).
 
 ## What good looks like
 
@@ -64,6 +89,8 @@ These decisions hold until someone makes the case to change them:
 - The combined demo comes up and resets with one action each.
 - A fresh location plus a versioned artifact reproduces the demo with no
   tribal knowledge.
+- Team API keys are stored encrypted by scope, managed in the console
+  GUI, and reach deployments without touching builds.
 
 ## Risks
 
@@ -71,11 +98,14 @@ These decisions hold until someone makes the case to change them:
   use; parity is tested, not assumed.
 - **Scope creep:** console, packaging, and second-stack work stays out
   of the templates effort; the deferred list below holds the line.
+- **Key custody:** master-key loss means secret loss, and rotation
+  tooling must land before the store holds real keys.
 
 ## Not now
 
-- **Console planning:** queue, console schema and migration story,
-  packaging, chat role.
+- **Console planning:** queue selection (cross-project-via-queue adopted
+  as the rule; broker choice plus semantics pending), console schema
+  and migration story, packaging, chat role.
 - **Apps planning:** app types, template binding, release flow.
 - **Later, unphased:** two-backend OpenAPI handoff design; TanStack
   plugin toggle (when the first UI needs shared server-state caching);
@@ -89,4 +119,5 @@ These decisions hold until someone makes the case to change them:
 - https://kubernetes.io/docs/concepts/workloads/pods/
 - https://docs.tilt.dev/
 - https://www.sqlite.org/about.html
+- https://www.rfc-editor.org/rfc/rfc5869
 - https://docs.turso.tech/libsql
