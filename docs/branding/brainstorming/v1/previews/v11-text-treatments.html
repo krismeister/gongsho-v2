@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>gongsho — text treatments</title>
+<style>
+:root{--paper:#FAF6EE;--ink:#211C14;--soft:#5C5546;--rule:#D8CDB4;--pod:#2F9E5F;--gold:#F0A500;--sig:#E4572E}
+*{box-sizing:border-box;margin:0}
+body{background:var(--paper);color:var(--ink);font-family:"Avenir Next","Segoe UI",sans-serif;line-height:1.6;padding-bottom:70px}
+.wrap{max-width:760px;margin:0 auto;padding:0 24px}
+header{padding:28px 0 6px;font-weight:700;font-size:18px}
+header p{font-weight:400;font-size:14px;color:var(--soft);margin-top:4px}
+.study{border-top:2px solid var(--ink);margin-top:30px;padding-top:20px}
+.study .tag{font-family:ui-monospace,monospace;font-size:12.5px;color:var(--soft);margin-bottom:14px}
+.demo{background:#fff;border:1px solid var(--rule);border-radius:14px;padding:30px 28px}
+.demo h3{font-size:27px;letter-spacing:-.02em;line-height:1.5;font-weight:600}
+.demo p{font-size:15px;color:var(--soft);margin-top:10px}
+code{font-family:ui-monospace,monospace;font-size:12px;color:var(--soft)}
+/* 1 — marker swipe */
+.mk{background:linear-gradient(transparent 8%, rgba(240,165,0,.55) 8%, rgba(240,165,0,.55) 92%, transparent 92%);border-radius:2px 10px 3px 9px;padding:0 6px;display:inline-block;transform:rotate(-1deg)}
+.mk.g{background:linear-gradient(transparent 8%, rgba(47,158,95,.32) 8%, rgba(47,158,95,.32) 92%, transparent 92%);border-radius:9px 3px 10px 2px;transform:rotate(.8deg)}
+/* 2 — offset block */
+.ob{position:relative;display:inline-block;padding:0 8px;z-index:0}
+.ob::before{content:"";position:absolute;inset:4px -4px -4px 4px;background:var(--pod);z-index:-1;border-radius:4px}
+.ob{color:#fff}
+.ob.ink{color:var(--ink)}
+.ob.ink::before{background:var(--gold)}
+/* 3 — echo frame */
+.ef{position:relative;display:inline-block;padding:0 6px}
+.ef::after{content:"";position:absolute;inset:5px -5px -5px 5px;border:2px solid var(--pod);border-radius:6px}
+/* 4 — stamp */
+.st{display:inline-block;font-family:ui-monospace,monospace;font-size:15px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--pod);border:3px double var(--pod);border-radius:8px;padding:4px 14px 4px 16px;transform:rotate(-3deg)}
+.st.red{color:var(--sig);border-color:var(--sig);transform:rotate(2deg)}
+footer{margin-top:34px;border-top:1px solid var(--rule);padding-top:16px;font-size:13px;color:var(--soft);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>ledger text treatments
+<p>Four highlight studies on identical copy. Pick a number — or a combination.</p></header>
+
+<section class="study"><div class="tag">01 / MARKER SWIPE — highlighter, slightly rotated, uneven edges</div>
+<div class="demo"><h3>Friendly <span class="mk">pods</span>. <span class="mk g">Boring</span> promises.</h3>
+<p>Best for: hero words, pull quotes. <code>rotate(-1deg) + uneven radius</code></p></div></section>
+
+<section class="study"><div class="tag">02 / OFFSET BLOCK — solid color dropped down-right behind the word</div>
+<div class="demo"><h3>Friendly <span class="ob">pods</span>. <span class="ob ink">Boring</span> promises.</h3>
+<p>Best for: section titles, nav highlights. <code>::before inset shift 4–6px</code></p></div></section>
+
+<section class="study"><div class="tag">03 / ECHO FRAME — hollow outline echoing the word behind it</div>
+<div class="demo"><h3>Friendly <span class="ef">pods</span>. Boring promises.</h3>
+<p>Best for: ledger keywords, table status words. <code>::after offset border</code></p></div></section>
+
+<section class="study"><div class="tag">04 / STAMP — rotated double-border status marks</div>
+<div class="demo"><h3>Templates <span class="st">done</span> · Console <span class="st red">next</span></h3>
+<p>Best for: spec-sheet statuses (done / next / after). <code>double border + rotate(±3deg)</code></p></div></section>
+
+<footer><span>Built in a gongsho pod.</span><span>v11 · text treatments</span></footer>
+</div>
+</body>
+</html>

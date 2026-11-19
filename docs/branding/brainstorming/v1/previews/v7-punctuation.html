@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>gongsho●●</title>
+<style>
+:root{--paper:#FAF6EE;--ink:#211C14;--soft:#5C5546;--pod:#2F9E5F;--gold:#F0A500}
+*{box-sizing:border-box;margin:0}
+body{background:var(--paper);color:var(--ink);font-family:"Avenir Next","Segoe UI",sans-serif;overflow-x:hidden;min-height:100vh;display:flex;flex-direction:column}
+.wrap{max-width:760px;margin:0 auto;padding:0 24px;width:100%;flex:1}
+.mast{padding:26px 0;font-size:14px;color:var(--soft);display:flex;justify-content:space-between}
+h1{font-size:clamp(72px,17vw,148px);letter-spacing:-.05em;line-height:.95;font-weight:700;margin:6vh 0 4vh}
+h1 .d1{color:var(--pod)}
+h1 .d2{color:var(--gold)}
+p{font-size:17px;max-width:44ch;margin:12px 0;color:var(--soft)}
+p b{color:var(--ink)}
+ul{list-style:none;margin:5vh 0;padding:0}
+li{padding:13px 0;border-top:1px solid var(--ink);font-size:15px}
+li:last-child{border-bottom:1px solid var(--ink)}
+li::before{content:"● ";color:var(--pod)}
+li:nth-child(2)::before{color:var(--gold)}
+li:nth-child(3)::before{color:var(--ink)}
+.links{margin:4vh 0;display:flex;gap:26px;font-size:15px}
+a{color:var(--ink);text-underline-offset:3px}
+.orb{position:fixed;right:-180px;bottom:-180px;width:360px;height:360px;border-radius:50%;background:var(--pod);opacity:.16;pointer-events:none}
+footer{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-size:13px;color:var(--soft);padding:24px 0 38px}
+</style>
+</head>
+<body>
+<div class="orb" aria-hidden="true"></div>
+<div class="wrap">
+<div class="mast"><span>gongsho — pod-based application platform</span><span>spec 003</span></div>
+<h1>gongsho<span class="d1">●</span><span class="d2">●</span></h1>
+<p><b>Two dots are the whole identity.</b> A request goes in, a deployment comes out — and the dots follow you everywhere: list markers, statuses, favicons.</p>
+<ul>
+<li><b>Templates, done.</b> Two seeds that already sprouted.</li>
+<li><b>Console, next.</b> Every team and deployment in sight.</li>
+<li><b>Apps, after.</b> The harvest, grown on green.</li>
+</ul>
+<div class="links"><a href="#">Install →</a><a href="#">Skills map →</a></div>
+<footer><span>Built in a gongsho pod.</span><span>v7 · punctuation — no illustration, only dots at every scale</span></footer>
+</div>
+</body>
+</html>

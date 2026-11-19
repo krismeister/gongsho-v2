@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>gongsho — lockup study</title>
+<style>
+:root{--paper:#FAF6EE;--ink:#211C14;--soft:#5C5546;--rule:#E3DACA;--plum:#9E4F79;--navy:#131E2A;--navtext:#F1EFE6}
+*{box-sizing:border-box;margin:0}
+body{background:var(--paper);color:var(--ink);font-family:"Avenir Next","Segoe UI",sans-serif;line-height:1.55;padding-bottom:70px}
+.wrap{max-width:860px;margin:0 auto;padding:0 24px}
+header{padding:28px 0 6px;font-weight:700;font-size:18px}
+header p{font-weight:400;font-size:14px;color:var(--soft);margin-top:4px;max-width:62ch}
+section{padding:26px 0;border-top:2px solid var(--ink);margin-top:26px}
+.chips{display:flex;gap:10px;margin-bottom:14px}
+@media(max-width:640px){.chips{flex-direction:column}}
+.chip{flex:1;border-radius:16px;display:flex;align-items:center;justify-content:center;padding:30px 12px;border:1px solid var(--rule)}
+.chip.light{background:#fff}
+.chip.dark{background:var(--navy);border-color:var(--navy)}
+h2{font-size:22px;letter-spacing:-.02em}
+h2 span{color:var(--soft);font-weight:400;font-size:15px}
+p{font-size:14.5px;color:var(--soft);margin:8px 0;max-width:60ch}
+p b{color:var(--ink)}
+code{font-family:ui-monospace,monospace;font-size:12.5px;background:#fff;border:1px solid var(--rule);border-radius:6px;padding:1px 7px}
+footer{margin-top:30px;border-top:1px solid var(--rule);padding-top:16px;font-size:13px;color:var(--soft);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>logo lockup study
+<p>The pea is brightened to <code>#9E4F79</code>. Each lockup is drawn as SVG artwork (pea geometry + set type as placed vectors). Live <code>&lt;text&gt;</code> stands in for final outlined letterforms — ship version needs one optical-spacing pass.</p></header>
+
+<section>
+<div class="chips">
+<div class="chip light"><svg viewBox="0 0 340 96" width="300" height="85" role="img" aria-label="Lockup A light"><g transform="translate(10,26) scale(0.6875)"><rect x="4" y="20" width="56" height="24" rx="12" fill="#9E4F79"/><circle cx="20" cy="32" r="5.5" fill="#fff"/><circle cx="32" cy="32" r="5.5" fill="#fff"/><circle cx="44" cy="32" r="5.5" fill="#fff"/></g><text x="66" y="60" font-family="'Avenir Next','Segoe UI',sans-serif" font-weight="700" font-size="40" letter-spacing="-1" textLength="240" lengthAdjust="spacingAndGlyphs" fill="#211C14">GongSho</text></svg></div>
+<div class="chip dark"><svg viewBox="0 0 340 96" width="300" height="85" role="img" aria-label="Lockup A dark"><g transform="translate(10,26) scale(0.6875)"><rect x="4" y="20" width="56" height="24" rx="12" fill="#9E4F79"/><circle cx="20" cy="32" r="5.5" fill="#131E2A"/><circle cx="32" cy="32" r="5.5" fill="#131E2A"/><circle cx="44" cy="32" r="5.5" fill="#131E2A"/></g><text x="66" y="60" font-family="'Avenir Next','Segoe UI',sans-serif" font-weight="700" font-size="40" letter-spacing="-1" textLength="240" lengthAdjust="spacingAndGlyphs" fill="#F1EFE6">GongSho</text></svg></div>
+</div>
+<h2>L1 · Plain cap <span>— pea + GongSho, nothing else</span></h2>
+<p><b>Gap between pea and type equals one seed diameter.</b> Type is one placed vector (<code>textLength 240</code>); the only decision left is optical kerning at ship time.</p>
+</section>
+
+<section>
+<div class="chips">
+<div class="chip light"><svg viewBox="0 0 340 96" width="300" height="85" role="img" aria-label="Lockup B light"><g transform="translate(10,26) scale(0.6875)"><rect x="4" y="20" width="56" height="24" rx="12" fill="#9E4F79"/><circle cx="20" cy="32" r="5.5" fill="#fff"/><circle cx="32" cy="32" r="5.5" fill="#fff"/><circle cx="44" cy="32" r="5.5" fill="#fff"/></g><text x="66" y="60" font-family="'Avenir Next','Segoe UI',sans-serif" font-weight="700" font-size="40" letter-spacing="-1" textLength="240" lengthAdjust="spacingAndGlyphs" fill="#211C14">GongSho</text><rect x="203" y="66" width="103" height="6" rx="3" fill="#9E4F79"/></svg></div>
+<div class="chip dark"><svg viewBox="0 0 340 96" width="300" height="85" role="img" aria-label="Lockup B dark"><g transform="translate(10,26) scale(0.6875)"><rect x="4" y="20" width="56" height="24" rx="12" fill="#9E4F79"/><circle cx="20" cy="32" r="5.5" fill="#131E2A"/><circle cx="32" cy="32" r="5.5" fill="#131E2A"/><circle cx="44" cy="32" r="5.5" fill="#131E2A"/></g><text x="66" y="60" font-family="'Avenir Next','Segoe UI',sans-serif" font-weight="700" font-size="40" letter-spacing="-1" textLength="240" lengthAdjust="spacingAndGlyphs" fill="#F1EFE6">GongSho</text><rect x="203" y="66" width="103" height="6" rx="3" fill="#9E4F79"/></svg></div>
+</div>
+<h2>L2 · Underlined Sho <span>— one vector rule, same plum</span></h2>
+<p><b>Rule sits under the last three glyphs</b> (<code>x 203–306</code>, derived from the <code>textLength</code> math, not eyeballed). Stroke <code>6 units</code> echoes the pod outline weight.</p>
+</section>
+
+<section>
+<div class="chips">
+<div class="chip light"><svg viewBox="0 0 340 96" width="300" height="85" role="img" aria-label="Lockup C light"><g transform="translate(10,26) scale(0.6875)"><rect x="4" y="20" width="56" height="24" rx="12" fill="#9E4F79"/><circle cx="20" cy="32" r="5.5" fill="#fff"/><circle cx="32" cy="32" r="5.5" fill="#fff"/><circle cx="44" cy="32" r="5.5" fill="#fff"/></g><rect x="197" y="22" width="115" height="46" rx="9" fill="#9E4F79" opacity="0.88"/><text x="66" y="60" font-family="'Avenir Next','Segoe UI',sans-serif" font-weight="700" font-size="40" letter-spacing="-1" textLength="240" lengthAdjust="spacingAndGlyphs" fill="#211C14">GongSho</text></svg></div>
+<div class="chip dark"><svg viewBox="0 0 340 96" width="300" height="85" role="img" aria-label="Lockup C dark"><g transform="translate(10,26) scale(0.6875)"><rect x="4" y="20" width="56" height="24" rx="12" fill="#9E4F79"/><circle cx="20" cy="32" r="5.5" fill="#131E2A"/><circle cx="32" cy="32" r="5.5" fill="#131E2A"/><circle cx="44" cy="32" r="5.5" fill="#131E2A"/></g><rect x="197" y="22" width="115" height="46" rx="9" fill="#9E4F79" opacity="0.88"/><text x="66" y="60" font-family="'Avenir Next','Segoe UI',sans-serif" font-weight="700" font-size="40" letter-spacing="-1" textLength="240" lengthAdjust="spacingAndGlyphs" fill="#F1EFE6">GongSho</text></svg></div>
+</div>
+<h2>L3 · Marked Sho <span>— the page's marker, shrunk onto the word</span></h2>
+<p><b>Wash block behind the last three glyphs</b> at <code>0.88 opacity</code> — near-solid, per your call. Type stays legible over it on both chips; final pass tunes the opacity per surface.</p>
+</section>
+
+<section>
+<div class="chips">
+<div class="chip light"><svg viewBox="0 0 220 150" width="180" height="123" role="img" aria-label="Lockup D light"><g transform="translate(78,8) scale(0.6875)"><rect x="4" y="20" width="56" height="24" rx="12" fill="#9E4F79"/><circle cx="20" cy="32" r="5.5" fill="#fff"/><circle cx="32" cy="32" r="5.5" fill="#fff"/><circle cx="44" cy="32" r="5.5" fill="#fff"/></g><text x="110" y="122" text-anchor="middle" font-family="'Avenir Next','Segoe UI',sans-serif" font-weight="700" font-size="34" letter-spacing="-0.5" fill="#211C14">GongSho</text></svg></div>
+<div class="chip dark"><svg viewBox="0 0 220 150" width="180" height="123" role="img" aria-label="Lockup D dark"><g transform="translate(78,8) scale(0.6875)"><rect x="4" y="20" width="56" height="24" rx="12" fill="#9E4F79"/><circle cx="20" cy="32" r="5.5" fill="#131E2A"/><circle cx="32" cy="32" r="5.5" fill="#131E2A"/><circle cx="44" cy="32" r="5.5" fill="#131E2A"/></g><text x="110" y="122" text-anchor="middle" font-family="'Avenir Next','Segoe UI',sans-serif" font-weight="700" font-size="34" letter-spacing="-0.5" fill="#F1EFE6">GongSho</text></svg></div>
+</div>
+<h2>L4 · Stacked <span>— pea above, name below, for square spaces</span></h2>
+<p><b>Avatar, favicon, slide covers.</b> Same pea, same cap treatment — no new decisions, just the vertical arrangement.</p>
+</section>
+
+<footer><span>Built in a gongsho pod.</span><span>lockup study · pea #9E4F79</span></footer>
+</div>
+</body>
+</html>

@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>gongsho — friendly pods, boring promises</title>
+<style>
+:root{--paper:#101F17;--ink:#F2F0E4;--soft:#A8B09E;--rule:#2C4234;--pod:#45B878;--gold:#E8B33C}
+*{box-sizing:border-box;margin:0}
+body{color:var(--ink);font-family:"Avenir Next","Segoe UI",sans-serif;line-height:1.6;padding-bottom:70px;
+background:
+radial-gradient(1100px 340px at 50% -60px, rgba(232,179,60,.16), rgba(232,179,60,0) 70%),
+radial-gradient(rgba(242,240,228,.07) 1px, transparent 1.4px),
+var(--paper);
+background-size:auto, 26px 26px, auto}
+.wrap{max-width:760px;margin:0 auto;padding:0 24px}
+.mast{display:flex;align-items:center;gap:9px;padding:24px 0;font-weight:700;font-size:18px;letter-spacing:-.02em}
+.mast .note{margin-left:auto;font-size:13px;color:var(--soft);font-weight:400}
+.hero{padding:5vh 0 3vh;display:flex;gap:28px;align-items:center}
+.mascot{flex:none;transform:rotate(5deg);line-height:0}
+@media(max-width:640px){.hero{flex-direction:column;align-items:flex-start}.mascot{display:none}}
+.hero h1{font-size:44px;letter-spacing:-.025em;line-height:1.5;font-weight:600}
+.hero .lede{color:var(--soft);font-size:17px;max-width:44ch;margin-top:14px}
+.links{display:flex;gap:24px;margin-top:18px;font-size:15px}
+a{color:var(--ink);text-underline-offset:3px}
+/* treatment 01 — marker swipe */
+.mk{display:inline-block;padding:0 8px;line-height:1.35;background:linear-gradient(transparent 6%, rgba(232,179,60,.5) 6%, rgba(232,179,60,.5) 94%, transparent 94%);border-radius:2px 12px 3px 11px;transform:rotate(-1deg)}
+.mk.g{background:linear-gradient(transparent 6%, rgba(69,184,120,.4) 6%, rgba(69,184,120,.4) 94%, transparent 94%);border-radius:11px 3px 12px 2px;transform:rotate(.8deg)}
+table{width:100%;border-collapse:collapse;border-top:1px solid var(--ink);margin-top:4vh}
+td{padding:16px 4px;border-bottom:1px solid var(--rule);vertical-align:top;font-size:15px}
+td.n{width:44px;color:var(--soft);font-family:ui-monospace,monospace;font-size:13px;padding-top:19px}
+td.s{width:120px;text-align:right}
+.dim{color:var(--soft)}
+.cli{background:#1B3025;color:#F2F0E4;border:1px solid var(--rule);border-radius:12px;padding:20px 22px;font-family:ui-monospace,monospace;font-size:14px;margin:4vh 0;overflow-x:auto}
+.cli .g2{color:#7CCB9B}.cli .y{color:#E8B33C}.cli .d{color:#8A9384}
+section{margin-top:4vh}
+section h2{font-size:21px;letter-spacing:-.02em;margin-bottom:6px}
+section p{font-size:15px;color:var(--soft);max-width:58ch}
+footer{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;color:var(--soft);font-size:12.5px;margin-top:5vh;border-top:1px solid var(--rule);padding-top:20px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="mast"><svg viewBox="0 0 64 64" width="36" height="36" aria-hidden="true"><rect x="4" y="20" width="56" height="24" rx="12" fill="#45B878"/><circle cx="20" cy="32" r="5.5" fill="#101F17"/><circle cx="32" cy="32" r="5.5" fill="#101F17"/><circle cx="44" cy="32" r="5.5" fill="#101F17"/></svg>gongsho<span class="note">pod-based application platform</span></div>
+<div class="hero">
+<div>
+<h1>Friendly <span class="mk">pods</span>.<br><span class="mk g">Boring</span> promises.</h1>
+<p class="lede">Design, scaffold, and deploy apps through agents and a boring shell harness. You bring the request — a small round pod carries it to production.</p>
+<div class="links"><a href="#">Install →</a><a href="#">Skills map →</a></div>
+</div>
+<figure class="mascot" aria-hidden="true"><svg viewBox="0 0 96 96" width="124" height="124"><path d="M48 38 V58 M32 45 H64 M48 58 L40 78 M48 58 L56 78" fill="none" stroke="#F2F0E4" stroke-width="6" stroke-linecap="round"/><rect x="22" y="8" width="52" height="22" rx="11" fill="#45B878"/><circle cx="38" cy="19" r="4.5" fill="#101F17"/><circle cx="48" cy="19" r="4.5" fill="#101F17"/><circle cx="58" cy="19" r="4.5" fill="#101F17"/></svg></figure>
+</div>
+<table>
+<tr><td class="n">01</td><td><b>Templates</b> — <span class="mk g">proven seeds</span> <span class="dim">· goa-api + react-ui, green and working</span></td><td class="s"><span class="mk g">done</span></td></tr>
+<tr><td class="n">02</td><td><b>Console</b> — <span class="dim">teams, projects, deployments in</span> <span class="mk">one surface</span></td><td class="s dim">next</td></tr>
+<tr><td class="n">03</td><td><b>Apps</b> — <span class="dim">grown on green ground,</span> <span class="mk g">after the console</span></td><td class="s dim">after</td></tr>
+<tr><td class="n">→</td><td><span style="font-family:ui-monospace,monospace;font-size:14px">:8181/&lt;team&gt;/&lt;project&gt;/&lt;deployment&gt;/</span> <span class="dim">· one caddy, health-checked</span></td><td class="s dim">always</td></tr>
+</table>
+<div class="cli"><span class="d">$</span> gongsho create acme/shop/web<br><span class="g2">✓</span> scaffold <span class="d">→</span> built <span class="d">→</span> health-checked<br><span class="y">→</span> http://localhost:8181/acme/shop/web/</div>
+<section><h2>Why <span class="mk g">pods</span>?</h2>
+<p>Deployments are long-lived; pods are their runtime instances, so the leaf survives scale-out without a rename. The mark says the same thing: put the fragile thing inside something <span class="mk">round and safe</span>, and let a boring harness do the carrying.</p></section>
+<footer><span>Built in a gongsho pod ●</span><span>scheme 2 · forest</span></footer>
+</div>
+</body>
+</html>

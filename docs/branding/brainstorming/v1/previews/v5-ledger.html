@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>gongsho — spec sheet</title>
+<style>
+:root{--paper:#FAF6EE;--ink:#211C14;--soft:#5C5546;--rule:#D8CDB4;--pod:#2F9E5F}
+*{box-sizing:border-box;margin:0}
+body{background:var(--paper);color:var(--ink);font-family:ui-monospace,Menlo,monospace;font-size:15px;line-height:1.6;padding-bottom:70px}
+.wrap{max-width:760px;margin:0 auto;padding:0 24px}
+.mast{display:flex;justify-content:space-between;gap:12px;padding:26px 0 14px;font-size:13px;color:var(--soft);border-bottom:1px solid var(--ink)}
+.mast b{color:var(--ink);font-size:15px}
+h1{font-family:"Avenir Next","Segoe UI",sans-serif;font-size:30px;font-weight:600;letter-spacing:-.02em;line-height:1.25;padding:34px 0;max-width:22ch}
+table{width:100%;border-collapse:collapse;border-top:1px solid var(--ink)}
+td{padding:15px 4px;border-bottom:1px solid var(--rule);vertical-align:top}
+td.n{width:44px;color:var(--soft)}
+td.s{width:90px;text-align:right}
+.ok{color:var(--pod);font-weight:700}
+.dim{color:var(--soft)}
+tr.route td{font-size:14px}
+a{color:var(--ink)}
+footer{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;color:var(--soft);font-size:12.5px;padding-top:26px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="mast"><b>gongsho ●</b><span>pod-based application platform · spec 001</span></div>
+<h1>Turns a request into running deployments. Nothing else on this page is decoration.</h1>
+<table>
+<tr><td class="n">01</td><td><b>Templates</b> — <span class="dim">goa-api · react-ui · ID rules · worked examples</span></td><td class="s ok">done</td></tr>
+<tr><td class="n">02</td><td><b>Console</b> — <span class="dim">teams · projects · deployments, one surface</span></td><td class="s dim">next</td></tr>
+<tr><td class="n">03</td><td><b>Apps</b> — <span class="dim">grown on a green console</span></td><td class="s dim">after</td></tr>
+<tr class="route"><td class="n">→</td><td>:8181/&lt;team&gt;/&lt;project&gt;/&lt;deployment&gt;/ &nbsp;<span class="dim">one caddy · health-checked</span></td><td class="s"><a href="#">install</a></td></tr>
+</table>
+<footer><span>Built in a gongsho pod.</span><span>v5 · ledger — the page is a spec sheet, no hero</span></footer>
+</div>
+</body>
+</html>

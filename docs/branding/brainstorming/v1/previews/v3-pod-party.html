@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>gongsho — pods all the way down</title>
+<style>
+:root{--paper:#FBF3E4;--ink:#211C14;--soft:#5C5546;--pod:#2F9E5F;--sig:#E4572E;--gold:#F0A500}
+*{box-sizing:border-box;margin:0}
+body{background:var(--paper);color:var(--ink);font-family:"Avenir Next","Trebuchet MS",sans-serif;line-height:1.5;padding-bottom:70px}
+.wrap{max-width:980px;margin:0 auto;padding:0 24px}
+header{display:flex;align-items:center;gap:10px;padding:20px 0;font-weight:800;font-size:22px}
+.party{position:relative;margin:26px 0 10px;background:#fff;border:3px solid var(--ink);border-radius:28px;padding:44px 36px;box-shadow:8px 8px 0 var(--ink);overflow:hidden}
+.party h1{font-size:52px;line-height:.98;letter-spacing:-.02em;max-width:9ch}
+.party h1 .u{background:var(--gold);border-radius:10px;padding:0 10px;display:inline-block;transform:rotate(-2deg)}
+.party p{color:var(--soft);font-size:17px;max-width:44ch;margin-top:14px}
+.sticker{position:absolute;top:26px;right:-38px;background:var(--sig);color:#fff;font-weight:800;font-size:14px;padding:8px 48px;transform:rotate(24deg)}
+.blobrow{display:flex;gap:14px;margin-top:26px;align-items:center}
+.pill{border:3px solid var(--ink);border-radius:999px;padding:8px 20px;font-weight:700;font-size:14px;text-decoration:none;color:var(--ink);background:#fff}
+.pill.fill{background:var(--pod);color:#fff}
+.pill.sun{background:var(--gold)}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin:30px 0}
+@media(max-width:700px){.cards{grid-template-columns:1fr}}
+.card{border:3px solid var(--ink);border-radius:22px;padding:22px;background:#fff}
+.card:nth-child(1){box-shadow:6px 6px 0 var(--pod)}
+.card:nth-child(2){box-shadow:6px 6px 0 var(--gold);transform:rotate(.6deg)}
+.card:nth-child(3){box-shadow:6px 6px 0 var(--sig);transform:rotate(-.6deg)}
+.card .face{width:46px;height:46px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:20px;margin-bottom:12px}
+.card h3{font-size:17px;margin-bottom:6px}
+.card p{font-size:14px;color:var(--soft)}
+.cli{border:3px solid var(--ink);border-radius:18px;background:var(--ink);color:var(--paper);padding:20px 22px;font-family:ui-monospace,Menlo,monospace;font-size:14px;box-shadow:6px 6px 0 var(--gold)}
+footer{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-top:34px;color:var(--soft);font-size:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header><svg viewBox="0 0 64 64" width="30" height="30" aria-hidden="true"><rect x="6" y="6" width="52" height="52" rx="18" fill="#2F9E5F"/><circle cx="24" cy="32" r="7" fill="#FBF3E4"/><circle cx="41" cy="32" r="7" fill="#F0A500"/></svg>gongsho</header>
+<section class="party">
+<div class="sticker">templates: done!</div>
+<h1>PODS ALL THE <span class="u">WAY</span> DOWN</h1>
+<p>Small round runtimes for your apps, carried by a harness so boring you will forget it exists. That is the whole trick.</p>
+<div class="blobrow"><a class="pill fill" href="#">Start a pod</a><a class="pill sun" href="#">See the console plan</a><a class="pill" href="#">Read the docs</a></div>
+</section>
+<div class="cards">
+<div class="card"><div class="face" style="background:var(--pod)">1</div><h3>Templates</h3><p>Seeds that already sprouted. Scaffold and go.</p></div>
+<div class="card"><div class="face" style="background:var(--gold);color:var(--ink)">2</div><h3>Console</h3><p>The greenhouse: every team and deployment in sight.</p></div>
+<div class="card"><div class="face" style="background:var(--sig)">3</div><h3>Apps</h3><p>The harvest. Built on top, shipped with confetti.</p></div>
+</div>
+<div class="cli">$ gongsho create acme/shop/web &nbsp;→&nbsp; ✓ pods up at :8181/acme/shop/web/</div>
+<footer><span>Built in a gongsho pod ●</span><span>v3 · pod party</span></footer>
+</div>
+</body>
+</html>

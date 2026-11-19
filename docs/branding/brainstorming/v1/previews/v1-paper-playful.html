@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>gongsho — Friendly pods. Boring promises.</title>
+<style>
+:root{--paper:#FAF6EE;--deep:#F1EAD9;--line:#E3DACA;--ink:#211C14;--soft:#5C5546;--pod:#2F9E5F;--sig:#E4572E;--gold:#F0A500}
+*{box-sizing:border-box;margin:0}
+body{background:var(--paper);color:var(--ink);font-family:"Avenir Next","Segoe UI",system-ui,sans-serif;line-height:1.55;padding:0 0 64px}
+.wrap{max-width:960px;margin:0 auto;padding:0 24px}
+header{display:flex;align-items:center;gap:10px;padding:22px 0;font-weight:700;font-size:22px;letter-spacing:-.02em}
+header span.dot{color:var(--pod)}
+.hero{display:grid;grid-template-columns:1.2fr .8fr;gap:32px;align-items:center;margin:36px 0 8px}
+@media(max-width:700px){.hero{grid-template-columns:1fr}}
+.hero h1{font-size:44px;line-height:1.05;letter-spacing:-.03em;margin:14px 0 12px}
+.hero h1 mark{background:linear-gradient(transparent 55%,var(--gold) 55% 92%,transparent 92%);color:inherit;padding:0 2px}
+.hero p.lede{color:var(--soft);font-size:18px;max-width:34ch}
+.cta-row{display:flex;gap:12px;margin-top:22px}
+.btn{display:inline-block;padding:11px 22px;border-radius:999px;text-decoration:none;font-weight:600;font-size:15px}
+.btn.solid{background:var(--ink);color:var(--paper)}
+.btn.ghost{border:2px solid var(--ink);color:var(--ink)}
+.pod-art{position:relative;height:280px}
+.pod{position:absolute;border-radius:38px;background:var(--pod)}
+.pod.big{width:190px;height:190px;right:30px;top:10px}
+.pod.big::before,.pod.big::after{content:"";position:absolute;top:78px;width:34px;height:34px;border-radius:50%;background:var(--paper)}
+.pod.big::before{left:48px}.pod.big::after{right:48px}
+.blob{position:absolute;border-radius:50%}
+.b1{width:88px;height:88px;background:var(--gold);left:8px;top:30px}
+.b2{width:52px;height:52px;border:3px solid var(--sig);left:110px;bottom:24px}
+.steps{display:flex;gap:0;margin:44px 0;border:2px solid var(--ink);border-radius:20px;overflow:hidden;background:#fff}
+.step{flex:1;padding:18px 20px;border-left:2px dashed var(--line)}
+.step:first-child{border-left:0}
+.step b.num{display:inline-block;background:var(--deep);border-radius:999px;padding:2px 12px;font-size:13px;margin-bottom:8px}
+.step.done b.num{background:var(--pod);color:#fff}
+.step h3{font-size:16px;margin-bottom:4px}
+.step p{font-size:14px;color:var(--soft)}
+.cli{background:var(--ink);color:var(--paper);border-radius:14px;padding:20px 22px;font-family:ui-monospace,Menlo,monospace;font-size:14px;margin:8px 0 30px}
+.cli .g{color:#7CCB9B}.cli .dim{color:#9a917f}
+.swatches{display:flex;gap:10px;margin:10px 0 6px}
+.sw{flex:1;border-radius:12px;padding:26px 0 10px;text-align:center;font-size:12px;font-family:ui-monospace,monospace;border:1px solid var(--line)}
+footer{margin-top:40px;color:var(--soft);font-size:14px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header><svg viewBox="0 0 64 64" width="30" height="30" aria-hidden="true"><rect x="6" y="6" width="52" height="52" rx="18" fill="#2F9E5F"/><circle cx="24" cy="32" r="7" fill="#FAF6EE"/><circle cx="41" cy="32" r="7" fill="#FAF6EE"/></svg>gongsho <span class="dot">●</span></header>
+<section class="hero">
+<div>
+<p style="font-size:14px;color:var(--soft)">A pod-based application platform</p>
+<h1>Friendly pods.<br><mark>Boring promises.</mark></h1>
+<p class="lede">Design, scaffold, and deploy apps through agents and a boring shell harness.</p>
+<div class="cta-row"><a class="btn solid" href="#">Install</a><a class="btn ghost" href="#">Skills map</a></div>
+</div>
+<div class="pod-art" aria-hidden="true"><div class="blob b1"></div><div class="pod big"></div><div class="blob b2"></div></div>
+</section>
+<div class="steps">
+<div class="step done"><b class="num">1 · done</b><h3>Templates</h3><p>goa-api and react-ui, green and proven.</p></div>
+<div class="step"><b class="num">2 · next</b><h3>Console</h3><p>Teams, projects, deployments in one surface.</p></div>
+<div class="step"><b class="num">3 · after</b><h3>Apps</h3><p>What others grow from the console.</p></div>
+</div>
+<div class="cli"><span class="dim">$</span> gongsho create team/project/deployment<br><span class="g">✓</span> scaffolded <span class="dim">→</span> built <span class="dim">→</span> health-checked<br><span class="dim">→</span> http://localhost:8181/team/project/deployment/</div>
+<div class="swatches">
+<div class="sw" style="background:#FAF6EE">Paper</div>
+<div class="sw" style="background:#211C14;color:#FAF6EE">Ink</div>
+<div class="sw" style="background:#2F9E5F;color:#fff">Pod</div>
+<div class="sw" style="background:#E4572E;color:#fff">Signal</div>
+<div class="sw" style="background:#F0A500">Marigold</div>
+</div>
+<footer><span>Built in a gongsho pod ●</span><span>v1 · paper playful (recommended)</span></footer>
+</div>
+</body>
+</html>

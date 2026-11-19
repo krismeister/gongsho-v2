@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>gongsho — dawn ledger</title>
+<style>
+:root{--paper:#FAF5EA;--ink:#221B10;--soft:#6B5F4C;--pod:#2F7A4E;--gold:#C98A12;--line:#E2D5B8;--card:#fff}
+*{box-sizing:border-box;margin:0}
+body{color:var(--ink);font-family:"Avenir Next","Segoe UI",sans-serif;line-height:1.6;
+background:
+radial-gradient(1100px 340px at 50% -60px, rgba(240,165,0,.28), rgba(240,165,0,0) 70%),
+radial-gradient(rgba(34,27,16,.10) 1px, transparent 1.4px),
+var(--paper);
+background-size:auto, 26px 26px, auto}
+.wrap{max-width:980px;margin:0 auto;padding:0 24px}
+.top{display:flex;align-items:center;justify-content:space-between;padding:18px 0;font-size:15px;border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:18px;letter-spacing:-.02em}
+.status{font-size:13px;color:var(--soft);font-family:ui-monospace,monospace}
+.status i{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--pod);margin-right:6px}
+.hero{padding:64px 0 30px;max-width:640px}
+.hero .k{font-family:ui-monospace,monospace;font-size:13px;color:var(--gold);font-weight:700;letter-spacing:.06em}
+.hero h1{font-size:52px;letter-spacing:-.025em;line-height:1.04;margin:12px 0}
+.hero p{color:var(--soft);font-size:16px}
+.term{background:var(--ink);color:#F4EDDE;border-radius:12px;margin:30px 0 8px;overflow:hidden;box-shadow:0 24px 60px -30px rgba(34,27,16,.55)}
+.term .bar{display:flex;gap:6px;padding:11px 14px;border-bottom:1px solid #3a3122}
+.term .bar i{width:11px;height:11px;border-radius:50%;background:#3a3122}
+.term pre{padding:20px;font-family:ui-monospace,Menlo,monospace;font-size:14px;overflow-x:auto}
+.g{color:#7CCB9B}.y{color:#F0C060}.d{color:#9a8f78}.w{color:#fff}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:30px 0}
+@media(max-width:700px){.grid{grid-template-columns:1fr}}
+.cell{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px}
+.cell .id{font-size:12px;color:var(--gold);font-family:ui-monospace,monospace;font-weight:700}
+.cell h3{font-size:17px;margin:6px 0}
+.cell p{font-size:13.5px;color:var(--soft)}
+.route{display:flex;justify-content:space-between;gap:10px;background:var(--ink);color:#F4EDDE;border-radius:10px;padding:14px 18px;font-size:13.5px;font-family:ui-monospace,monospace;margin:6px 0 30px;flex-wrap:wrap}
+footer{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;color:var(--soft);font-size:12.5px;padding:26px 0 50px;border-top:1px solid var(--line)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="top"><span class="brand"><svg viewBox="0 0 64 64" width="26" height="26" aria-hidden="true"><rect x="6" y="6" width="52" height="52" rx="18" fill="#2F7A4E"/><circle cx="24" cy="32" r="7" fill="#FAF5EA"/><circle cx="41" cy="32" r="7" fill="#FAF5EA"/></svg>gongsho</span><span class="status"><i></i>harness: green · :8181</span></div>
+<section class="hero">
+<div class="k">POD-BASED APPLICATION PLATFORM</div>
+<h1>Watch a request become a business.</h1>
+<p>Templates first, then console, then apps. You describe what the business needs — agents and a boring shell harness do the rest, health-checked behind one address.</p>
+<div class="term"><div class="bar"><i></i><i></i><i></i></div><pre><span class="d">$</span> <span class="w">gongsho create acme/shop/web</span>
+<span class="g">✓</span> scaffold  <span class="d">from proven templates</span>
+<span class="g">✓</span> build     <span class="d">0 errors</span>
+<span class="g">✓</span> health    <span class="d">200 via caddy</span>
+<span class="y">→</span> <span class="w">http://localhost:8181/acme/shop/web/</span></pre></div>
+</section>
+<div class="grid">
+<div class="cell"><div class="id">01 / READY</div><h3>Templates</h3><p>Proven starting points your team never outgrows.</p></div>
+<div class="cell"><div class="id">02 / NEXT</div><h3>Console</h3><p>Every team, project, and deployment in one view.</p></div>
+<div class="cell"><div class="id">03 / AFTER</div><h3>Apps</h3><p>Real applications, grown on solid ground.</p></div>
+</div>
+<div class="route"><span>team / project / deployment</span><span class="d">long-lived deployments · pods scale out</span></div>
+<footer><span>Built in a gongsho pod ●</span><span>v8 · dawn ledger</span></footer>
+</div>
+</body>
+</html>

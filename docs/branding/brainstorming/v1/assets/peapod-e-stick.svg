@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-label="Peapod stick figure">
+  <path d="M48 34 V62 M28 44 H68 M48 62 L36 86 M48 62 L60 86" fill="none" stroke="#211C14" stroke-width="7" stroke-linecap="round"/>
+  <rect x="30" y="8" width="36" height="16" rx="8" fill="#2F9E5F"/>
+  <circle cx="40" cy="16" r="3" fill="#FAF6EE"/>
+  <circle cx="48" cy="16" r="3" fill="#FAF6EE"/>
+  <circle cx="56" cy="16" r="3" fill="#FAF6EE"/>
+</svg>

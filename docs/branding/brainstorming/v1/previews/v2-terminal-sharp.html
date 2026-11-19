@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>gongsho — the boring way to ship</title>
+<style>
+:root{--paper:#FAF6EE;--ink:#1B1712;--panel:#2A241B;--mut:#9a917f;--pod:#45B878;--gold:#F0A500;--sig:#E4572E;--line:#3a332a}
+*{box-sizing:border-box;margin:0}
+body{background:var(--ink);color:var(--paper);font-family:ui-monospace,"Cascadia Mono",Menlo,monospace;line-height:1.6}
+.wrap{max-width:980px;margin:0 auto;padding:0 24px}
+.top{display:flex;align-items:center;justify-content:space-between;padding:18px 0;border-bottom:1px solid var(--line);font-size:15px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:18px;font-family:"Avenir Next","Segoe UI",sans-serif}
+.status{font-size:13px;color:var(--mut)}
+.status i{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--pod);margin-right:6px}
+.hero{padding:56px 0 40px}
+.hero .k{color:var(--pod);font-size:13px}
+.hero h1{font-family:"Avenir Next","Segoe UI",sans-serif;font-size:46px;letter-spacing:-.02em;line-height:1.05;margin:12px 0}
+.hero p{color:var(--mut);max-width:60ch;font-size:15px}
+.term{background:#100d09;border:1px solid var(--line);border-radius:10px;margin:26px 0 8px;overflow:hidden}
+.term .bar{display:flex;gap:6px;padding:10px 14px;border-bottom:1px solid var(--line)}
+.term .bar i{width:11px;height:11px;border-radius:50%;background:var(--line)}
+.term pre{padding:18px;font-size:14px;overflow-x:auto}
+.g{color:var(--pod)}.y{color:var(--gold)}.d{color:var(--mut)}.w{color:#fff}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden;margin:30px 0}
+@media(max-width:700px){.grid{grid-template-columns:1fr}}
+.cell{background:var(--ink);padding:20px}
+.cell .id{font-size:12px;color:var(--mut)}
+.cell h3{font-family:"Avenir Next","Segoe UI",sans-serif;font-size:17px;margin:6px 0}
+.cell p{font-size:13px;color:var(--mut)}
+.route{display:flex;justify-content:space-between;gap:10px;background:var(--panel);border-left:4px solid var(--pod);padding:14px 18px;font-size:13px;margin:6px 0 30px;flex-wrap:wrap}
+footer{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;color:var(--mut);font-size:12px;padding:26px 0 50px;border-top:1px solid var(--line)}
+a{color:var(--pod)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="top"><span class="brand"><svg viewBox="0 0 64 64" width="26" height="26" aria-hidden="true"><rect x="6" y="6" width="52" height="52" rx="14" fill="none" stroke="#45B878" stroke-width="6"/><circle cx="24" cy="32" r="7" fill="#45B878"/><circle cx="41" cy="32" r="7" fill="#45B878"/></svg>gongsho</span><span class="status"><i></i>harness: green · :8181</span></div>
+<section class="hero">
+<div class="k">pod-based application platform</div>
+<h1>The boring way<br>to ship.</h1>
+<p>Templates first, then console, then apps. Agents do the work through a shell harness you can read in an afternoon — every deployment health-checked behind one Caddy.</p>
+<div class="term" aria-label="example session"><div class="bar"><i></i><i></i><i></i></div><pre><span class="d">$</span> <span class="w">gongsho create acme/shop/web</span>
+<span class="g">✓</span> scaffold  <span class="d">templates/goa-api + react-ui</span>
+<span class="g">✓</span> build     <span class="d">0 errors</span>
+<span class="g">✓</span> health    <span class="d">200 via caddy</span>
+<span class="y">→</span> <span class="w">http://localhost:8181/acme/shop/web/</span></pre></div>
+</section>
+<div class="grid">
+<div class="cell"><div class="id">01 / DONE</div><h3>Templates</h3><p>Two runnable templates with ID rules and worked examples.</p></div>
+<div class="cell"><div class="id">02 / NEXT</div><h3>Console</h3><p>One surface over team, project, deployment records.</p></div>
+<div class="cell"><div class="id">03 / AFTER</div><h3>Apps</h3><p>Applications grown on top of a green console.</p></div>
+</div>
+<div class="route"><span>team / project / deployment</span><span class="d">deployments are long-lived · pods scale out</span></div>
+<footer><span>Built in a gongsho pod ●</span><span>v2 · terminal sharp</span></footer>
+</div>
+</body>
+</html>

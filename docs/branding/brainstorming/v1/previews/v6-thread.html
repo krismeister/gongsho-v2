@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>gongsho — one line</title>
+<style>
+:root{--paper:#FAF6EE;--ink:#211C14;--soft:#5C5546;--pod:#2F9E5F}
+*{box-sizing:border-box;margin:0}
+body{background:var(--paper);color:var(--ink);font-family:"Avenir Next","Segoe UI",sans-serif;line-height:1.55;min-height:100vh;display:flex;flex-direction:column}
+.wrap{max-width:760px;margin:0 auto;padding:0 24px;width:100%}
+header{display:flex;align-items:center;gap:9px;padding:24px 0;font-weight:700;font-size:18px;letter-spacing:-.02em}
+main{flex:1}
+h1{font-size:38px;letter-spacing:-.025em;line-height:1.12;margin:8vh 0 10px;max-width:16ch}
+.lede{color:var(--soft);font-size:17px;max-width:42ch}
+.thread{position:relative;height:2px;background:var(--ink);margin:9vh -24px 0}
+.thread .bead{position:absolute;top:-21px;left:calc(50% - 21px);background:var(--paper);padding:0 6px}
+.thread .stop{position:absolute;top:-4px;width:10px;height:10px;border-radius:50%;background:var(--paper);border:2px solid var(--ink)}
+.thread .stop.done{background:var(--pod);border-color:var(--pod)}
+.labels{display:flex;justify-content:space-between;font-size:12.5px;color:var(--soft);font-family:ui-monospace,monospace;padding-top:12px}
+.labels b{color:var(--ink)}
+.cli{font-family:ui-monospace,monospace;font-size:14px;margin-top:7vh;color:var(--soft)}
+.cli b{color:var(--ink);font-weight:400}
+footer{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:13px;color:var(--soft);padding:26px 0 40px}
+a{color:var(--ink)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header><svg viewBox="0 0 64 64" width="24" height="24" aria-hidden="true"><rect x="6" y="6" width="52" height="52" rx="18" fill="#2F9E5F"/><circle cx="24" cy="32" r="7" fill="#FAF6EE"/><circle cx="41" cy="32" r="7" fill="#FAF6EE"/></svg>gongsho</header>
+<main>
+<h1>One line from request to running.</h1>
+<p class="lede">Design, scaffold, and deploy apps through agents and a boring shell harness.</p>
+<div class="thread" aria-hidden="true">
+<span class="stop done" style="left:12%"></span>
+<span class="stop done" style="left:31%"></span>
+<span class="stop" style="left:64%"></span>
+<span class="bead"><svg viewBox="0 0 64 64" width="36" height="36"><rect x="6" y="6" width="52" height="52" rx="18" fill="#2F9E5F"/><circle cx="24" cy="32" r="7" fill="#FAF6EE"/><circle cx="41" cy="32" r="7" fill="#FAF6EE"/></svg></span>
+</div>
+<div class="labels"><span><b>templates</b> · done</span><span><b>console</b> · next</span><span><b>apps</b> · after</span></div>
+<p class="cli"><b>:8181/&lt;team&gt;/&lt;project&gt;/&lt;deployment&gt;/</b> — <a href="#">install</a> · <a href="#">skills</a></p>
+</main>
+<footer><span>Built in a gongsho pod.</span><span>v6 · thread — one rule carries the whole story</span></footer>
+</div>
+</body>
+</html>

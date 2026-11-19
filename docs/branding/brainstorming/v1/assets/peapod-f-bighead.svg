@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-label="Peapod big head">
+  <path d="M48 38 V58 M32 45 H64 M48 58 L40 78 M48 58 L56 78" fill="none" stroke="#211C14" stroke-width="6" stroke-linecap="round"/>
+  <rect x="22" y="8" width="52" height="22" rx="11" fill="#2F9E5F"/>
+  <circle cx="38" cy="19" r="4.5" fill="#FAF6EE"/>
+  <circle cx="48" cy="19" r="4.5" fill="#FAF6EE"/>
+  <circle cx="58" cy="19" r="4.5" fill="#FAF6EE"/>
+</svg>

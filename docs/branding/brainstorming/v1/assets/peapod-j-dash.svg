@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-label="Peapod dash">
+  <path d="M8 44 H20 M4 56 H20" fill="none" stroke="#F0A500" stroke-width="4" stroke-linecap="round"/>
+  <path d="M50 38 L44 58 M47 44 L34 52 M47 44 L60 50 M44 58 L30 68 M44 58 L60 68" fill="none" stroke="#211C14" stroke-width="6" stroke-linecap="round"/>
+  <g transform="rotate(12 48 19)">
+    <rect x="22" y="8" width="52" height="22" rx="11" fill="#2F9E5F"/>
+    <circle cx="38" cy="19" r="4.5" fill="#FAF6EE"/>
+    <circle cx="48" cy="19" r="4.5" fill="#FAF6EE"/>
+    <circle cx="58" cy="19" r="4.5" fill="#FAF6EE"/>
+  </g>
+</svg>

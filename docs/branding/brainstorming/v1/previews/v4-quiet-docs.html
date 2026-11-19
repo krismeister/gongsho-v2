@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gongsho — documentation</title>
+<style>
+:root{--bg:#FFFFFF;--wash:#F6F3EC;--ink:#211C14;--soft:#5C5546;--rule:#E7E0D2;--pod:#2F9E5F}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:Georgia,"Times New Roman",serif;line-height:1.65;padding-bottom:80px}
+.sans{font-family:-apple-system,"Segoe UI",system-ui,sans-serif}
+.wrap{max-width:720px;margin:0 auto;padding:0 24px}
+header{display:flex;align-items:center;gap:9px;padding:26px 0;font-family:-apple-system,"Segoe UI",sans-serif;font-weight:600;font-size:17px}
+header .rule{flex:1;height:1px;background:var(--rule);margin-left:14px}
+main h1{font-size:40px;line-height:1.15;font-weight:600;letter-spacing:-.01em;margin:34px 0 10px}
+main .sub{color:var(--soft);font-size:18px;font-style:italic;margin-bottom:8px}
+section{border-top:1px solid var(--rule);padding:26px 0}
+sec-head,.no{font-family:-apple-system,"Segoe UI",sans-serif}
+.no{color:var(--pod);font-size:13px;font-weight:700;letter-spacing:.04em}
+h2{font-size:24px;font-weight:600;margin:6px 0 8px}
+p{margin:8px 0;max-width:62ch}
+ul{margin:8px 0 8px 20px}
+li{margin:4px 0}
+code{font-family:ui-monospace,Menlo,monospace;font-size:.86em;background:var(--wash);border:1px solid var(--rule);border-radius:6px;padding:1px 6px}
+pre{background:var(--wash);border:1px solid var(--rule);border-radius:10px;padding:16px 18px;font-family:ui-monospace,Menlo,monospace;font-size:13.5px;overflow-x:auto;margin-top:12px}
+.btnrow{display:flex;gap:12px;margin-top:34px;font-family:-apple-system,"Segoe UI",sans-serif}
+a.btn{color:var(--pod);font-weight:600;text-decoration:underline;text-underline-offset:3px}
+footer{margin-top:30px;border-top:1px solid var(--rule);padding-top:18px;color:var(--soft);font-size:13.5px;font-family:-apple-system,"Segoe UI",sans-serif;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header><svg viewBox="0 0 64 64" width="22" height="22" aria-hidden="true"><rect x="6" y="6" width="52" height="52" rx="18" fill="none" stroke="#211C14" stroke-width="5"/><circle cx="24" cy="32" r="6" fill="#211C14"/><circle cx="41" cy="32" r="6" fill="#211C14"/></svg>Gongsho<span class="rule"></span></header>
+<main>
+<h1>A pod-based application platform.</h1>
+<p class="sub">Design, scaffold, and deploy apps through agents and a boring shell harness.</p>
+<div class="btnrow"><a class="btn" href="#">Install →</a><a class="btn" href="#">Skills map →</a></div>
+<section><div class="no">01 — TEMPLATES · DONE</div><h2>Start from what works.</h2>
+<p>Two runnable templates, <code>goa-api</code> and <code>react-ui</code>, with ID rules and worked examples. A fresh session scaffolds from the READMEs alone.</p></section>
+<section><div class="no">02 — CONSOLE · NEXT</div><h2>One surface for every deployment.</h2>
+<p>Teams contain projects contain deployments. The console is the record of all three — and the surface for changing them.</p>
+<pre>gongsho_v2/  tools, templates, proxy, docs
+apps/&lt;team&gt;/&lt;project&gt;/&lt;deployment&gt;/
+:8181/&lt;team&gt;/&lt;project&gt;/&lt;deployment&gt;/</pre></section>
+<section><div class="no">03 — APPS · AFTER</div><h2>Then grow from there.</h2>
+<p>Applications built on top of the console, starting from green. The leaf survives scale-out: deployments are long-lived, pods are instances.</p>
+<ul><li>SQLite, one file per API.</li><li>Synchronous flows until async earns its place.</li><li>Health checks, not hope.</li></ul></section>
+</main>
+<footer><span>Built in a gongsho pod.</span><span>v4 · quiet docs</span></footer>
+</div>
+</body>
+</html>
