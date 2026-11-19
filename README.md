@@ -3,6 +3,8 @@
 A pod-based application development platform: templates first, then
 gongsho-console, then gongsho-apps.
 
+Docs (GitHub Pages): https://krismeister.github.io/gongsho-v2/
+
 Status: templates and harness are built and green; planning docs live
 in `docs/`.
 

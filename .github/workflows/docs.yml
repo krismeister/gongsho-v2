@@ -3,9 +3,9 @@ name: Deploy docs to GitHub Pages
 on:
   push:
     branches: [ main ]
-    paths: [ site/**, docs/** ]
+    paths: [ ci/doc-site/**, docs/** ]
   pull_request:
-    paths: [ site/**, docs/** ]
+    paths: [ ci/doc-site/**, docs/** ]
   workflow_dispatch:
 
 permissions:
@@ -22,7 +22,7 @@ jobs:
       - name: Install, build, and upload
         uses: withastro/action@v6
         with:
-          path: site
+          path: ci/doc-site
           package-manager: pnpm@9.15.9
 
   deploy:
