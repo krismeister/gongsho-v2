@@ -10,7 +10,7 @@ server rendering (a future `nextjs-ui` template covers that).
 - `config/caddy/stanza` — proxy stanza template; render `${PATH}` (slash
   path, e.g. `acme/shop/ui-1`) and `${REPO}` (absolute checkout path).
   Verbatim shape from `docs/ai/contracts/proxy.md`.
-- `app/` — scaffold source, copied as-is to the deployment dir.
+- `app/` — scaffold source, copied as-is to the deployment dir. `app/public/` is the static site root: the `gen-config.json` placeholder plus the favicon defaults (`icon.svg`, `favicon.ico`, `apple-touch-icon.png`) linked from `index.html` with root-absolute hrefs (rebased per `--base` at build).
 
 Only `proxy-stanza` may be regenerated across apps; everything under `app/`
 is app property after scaffold.
